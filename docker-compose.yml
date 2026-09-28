@@ -1,5 +1,5 @@
-# Default: postgres only (enough for Prisma migrate).
-# Full local stack: docker compose --profile full up -d
+# Default stack: postgres + api
+# Extra services: docker compose --profile full up -d
 
 services:
   postgres:
@@ -7,6 +7,7 @@ services:
     container_name: ai-pto-postgres
     restart: unless-stopped
     ports:
+      # Host 5433 — avoids conflict with a local Postgres already on 5432
       - "5433:5432"
     environment:
       POSTGRES_USER: pto
@@ -20,6 +21,22 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai-pto-api
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      PORT: "3000"
+      # Inside the compose network use service hostname `postgres` and container port 5432
+      DATABASE_URL: postgresql://pto:pto@postgres:5432/ai_pto
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   redis:
     image: redis:7-alpine

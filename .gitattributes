@@ -4,3 +4,4 @@ src/prisma/ops.json linguist-generated
 src/prisma/migration.json linguist-generated
 migrations/snapshots/**/contract.json linguist-generated
 migrations/snapshots/**/contract.d.ts linguist-generated
+docker/entrypoint.sh text eol=lf
