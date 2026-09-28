@@ -23,5 +23,6 @@
     "noFallthroughCasesInSwitch": false,
     "resolveJsonModule": true,
     "types": ["node"]
-  }
+  },
+  "exclude": ["node_modules", "dist", "migrations"]
 }
