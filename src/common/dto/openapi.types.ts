@@ -40,21 +40,16 @@ export interface SeverityCounts {
   critical: number;
 }
 
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
 export interface User {
   id: string;
   email: string;
   name: string;
+  organizationId: string;
   role: UserRole;
 }
 
-export interface AuthResponse {
-  accessToken: string;
-  expiresIn: number;
+export interface ProtectedResponse {
+  ok: boolean;
   user: User;
 }
 

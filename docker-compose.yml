@@ -1,4 +1,4 @@
-# Default stack: postgres + api
+# Default stack: postgres + redis + api
 # Extra services: docker compose --profile full up -d
 
 services:
@@ -34,14 +34,16 @@ services:
       PORT: "3000"
       # Inside the compose network use service hostname `postgres` and container port 5432
       DATABASE_URL: postgresql://pto:pto@postgres:5432/ai_pto
+      REDIS_URL: redis://redis:6379
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   redis:
     image: redis:7-alpine
     container_name: ai-pto-redis
-    profiles: ["full"]
     restart: unless-stopped
     ports:
       - "6379:6379"

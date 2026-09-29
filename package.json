@@ -32,8 +32,11 @@
     "@nestjs/platform-express": "^11.0.1",
     "@prisma/client": "^7.10.0",
     "@prisma/orm-postgres": "^8.0.0-rc.11",
+    "cookie-parser": "^1.4.7",
     "dotenv": "^18.0.3",
     "husky": "^9.1.7",
+    "ioredis": "^6.0.0",
+    "openid-client": "5",
     "prisma": "^8.0.0-rc.15",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
@@ -47,6 +50,7 @@
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
     "@prisma/cli-engine": "0.4.0",
+    "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.0",
@@ -76,7 +80,12 @@
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.(t|j)s$": [
+        "ts-jest",
+        {
+          "tsconfig": "<rootDir>/../tsconfig.spec.json"
+        }
+      ]
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"

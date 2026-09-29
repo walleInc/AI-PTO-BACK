@@ -29,7 +29,7 @@ info:
     ## Открытые вопросы (x-draft)
 
     - Формат `bbox` в `SourceRef`: сейчас доли страницы 0..1 от верхнего левого угла.
-    - Механизм авторизации: сейчас Bearer JWT, возможна замена на cookie-сессию.
+    - Механизм авторизации: OIDC (ZITADEL) Authorization Code + PKCE, сессия в HttpOnly cookie `ai_pto_session`.
     - SSE или WebSocket для прогресса: сейчас описан SSE.
     - Полный список типов документов (`DocumentType`) уточнить по документации.
   contact:
@@ -53,28 +53,61 @@ tags:
   - name: Reports
     description: PDF-отчёты для подрядчика
 security:
-  - bearerAuth: []
+  - cookieAuth: []
 
 paths:
   /auth/login:
-    post:
+    get:
       tags: [Auth]
       operationId: login
-      summary: Вход
+      summary: Начать OIDC вход (redirect на ZITADEL)
       security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: "#/components/schemas/LoginRequest" }
+      description: |
+        Генерирует PKCE challenge, сохраняет state в Redis и перенаправляет браузер
+        на Authorization Endpoint ZITADEL (Authorization Code Flow + PKCE).
       responses:
-        "200":
-          description: Успешный вход
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/AuthResponse" }
+        "302":
+          description: Redirect на ZITADEL login
+          headers:
+            Location:
+              schema: { type: string, format: uri }
+
+  /auth/callback:
+    get:
+      tags: [Auth]
+      operationId: authCallback
+      summary: OIDC callback (обмен code на сессию)
+      security: []
+      description: |
+        Обменивает authorization code на токены у ZITADEL, создаёт серверную сессию
+        в Redis и выставляет HttpOnly cookie `ai_pto_session`, затем redirect на `/auth/me`.
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema: { type: string }
+        - name: state
+          in: query
+          required: true
+          schema: { type: string }
+        - name: error
+          in: query
+          required: false
+          schema: { type: string }
+        - name: error_description
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        "302":
+          description: Успех — Set-Cookie и redirect на `/auth/me`
+          headers:
+            Location:
+              schema: { type: string, format: uri }
+            Set-Cookie:
+              schema: { type: string }
+        "400": { $ref: "#/components/responses/ValidationError" }
         "401": { $ref: "#/components/responses/Unauthorized" }
-        "422": { $ref: "#/components/responses/ValidationError" }
 
   /auth/logout:
     post:
@@ -82,7 +115,11 @@ paths:
       operationId: logout
       summary: Выход
       responses:
-        "204": { description: Сессия завершена }
+        "204":
+          description: Сессия завершена, cookie очищена
+          headers:
+            Set-Cookie:
+              schema: { type: string }
 
   /auth/me:
     get:
@@ -95,6 +132,20 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/User" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /protected:
+    get:
+      tags: [Auth]
+      operationId: getProtected
+      summary: Smoke-тест SessionGuard
+      description: Защищённый endpoint для проверки cookie-сессии без frontend.
+      responses:
+        "200":
+          description: Сессия валидна
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProtectedResponse" }
         "401": { $ref: "#/components/responses/Unauthorized" }
 
   /work-types:
@@ -318,14 +369,8 @@ paths:
         Server-Sent Events. Соединение остаётся открытым до завершения пакета.
         Каждое событие содержит JSON по схеме `PackageEvent`. Имя события (`event:`) совпадает
         с полем `type`. При подключении сервер сначала отправляет `package.snapshot`
-        с текущим состоянием. Так как `EventSource` не умеет передавать заголовки,
-        для авторизации допустим короткоживущий токен в `access_token` или cookie-сессия.
-      parameters:
-        - name: access_token
-          in: query
-          required: false
-          description: Токен для клиентов, которые не могут задать заголовок Authorization
-          schema: { type: string }
+        с текущим состоянием. Авторизация — cookie-сессия `ai_pto_session`
+        (браузерный `EventSource` отправляет cookies same-origin автоматически).
       responses:
         "200":
           description: Поток событий
@@ -762,11 +807,11 @@ paths:
 
 components:
   securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-      x-draft: true
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: ai_pto_session
+      description: Opaque session id; данные сессии хранятся в Redis.
 
   parameters:
     ObjectId:
@@ -928,31 +973,28 @@ components:
       description: Совпадает с Prisma ReportStatus
 
     # ---------- Пользователь ----------
-    LoginRequest:
-      type: object
-      required: [email, password]
-      properties:
-        email: { type: string, format: email }
-        password: { type: string, format: password }
-
-    AuthResponse:
-      type: object
-      required: [accessToken, expiresIn, user]
-      properties:
-        accessToken: { type: string }
-        expiresIn: { type: integer, description: Время жизни токена, секунды }
-        user: { $ref: "#/components/schemas/User" }
-
     User:
       type: object
-      required: [id, email, name, role]
+      required: [id, email, name, organizationId, role]
       properties:
-        id: { type: string, format: uuid }
+        id:
+          type: string
+          description: OIDC subject (`sub`) из ZITADEL
         email: { type: string, format: email }
         name: { type: string }
+        organizationId:
+          type: string
+          description: ZITADEL organization / resource owner id
         role:
           type: string
           enum: [engineer, contractor]
+
+    ProtectedResponse:
+      type: object
+      required: [ok, user]
+      properties:
+        ok: { type: boolean, examples: [true] }
+        user: { $ref: "#/components/schemas/User" }
 
     # ---------- Объекты ----------
     WorkType:

@@ -42,6 +42,10 @@ lerna-debug.log*
 .env.production.local
 .env.local
 
+# ZITADEL application private keys (Private Key JWT)
+/secrets/
+**/zitadel-*-key.json
+
 # temp directory
 .temp
 .tmp
