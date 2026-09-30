@@ -1,9 +1,18 @@
 import { Module } from "@nestjs/common";
+import { AuthModule } from "../auth/auth.module";
+import {
+  CounterpartiesController,
+  ObjectsController,
+  ObjectTypesController,
+  WorkTypesController,
+} from "./objects.controller";
 import { ObjectsService } from "./objects.service";
-import { ObjectsController } from "./objects.controller";
+import { RolesGuard } from "../../common/guards/roles.guard";
 
 @Module({
-  controllers: [ObjectsController],
-  providers: [ObjectsService],
+  imports: [AuthModule],
+  controllers: [ObjectTypesController, WorkTypesController, CounterpartiesController, ObjectsController],
+  providers: [ObjectsService, RolesGuard],
+  exports: [ObjectsService],
 })
 export class ObjectsModule {}

@@ -1,0 +1,636 @@
+// AI-ПТО v0.2 — черновик Prisma. Источник истины для Sprint 1.
+// Частичные уникальные индексы: prisma/partial-indexes.sql
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrganizationKind {
+  tenant
+  counterparty
+}
+
+enum OrganizationStatus {
+  active
+  suspended
+}
+
+enum UserStatus {
+  active
+  invited
+  disabled
+}
+
+enum MembershipRole {
+  owner
+  engineer
+}
+
+enum MembershipStatus {
+  active
+  invited
+  disabled
+}
+
+enum ObjectStatus {
+  draft
+  active
+  on_hold
+  completed
+  archived
+}
+
+enum PackageStatus {
+  uploading
+  queued
+  processing
+  done
+  partial
+  failed
+}
+
+enum DocumentStatus {
+  awaiting_upload
+  uploaded
+  queued
+  processing
+  done
+  failed
+}
+
+enum StageName {
+  extract
+  ocr
+  classify
+  parse
+  rules
+  explain
+}
+
+enum StageStatus {
+  pending
+  running
+  succeeded
+  failed
+  skipped
+}
+
+enum SourceKind {
+  pdf
+  xlsx
+  docx
+}
+
+enum FindingSeverity {
+  info
+  warning
+  error
+  critical
+}
+
+enum FindingStatus {
+  open
+  accepted
+  dismissed
+  fixed
+}
+
+enum Criticality {
+  low
+  medium
+  high
+  critical
+}
+
+enum ChecklistItemStatus {
+  missing
+  partial
+  complete
+}
+
+enum ReportScope {
+  accepted
+  errors
+  all_open
+}
+
+enum ReportStatus {
+  queued
+  generating
+  ready
+  failed
+}
+
+enum RequirementSetStatus {
+  draft
+  active
+  retired
+}
+
+model Organization {
+  id        String             @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String             @unique
+  kind      OrganizationKind
+  status    OrganizationStatus @default(active)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  memberships            Membership[]
+  workspaceObjects       ConstructionObject[]       @relation("WorkspaceOrg")
+  customerObjects        ConstructionObject[]       @relation("CustomerOrg")
+  contractorObjects      ConstructionObject[]       @relation("ContractorOrg")
+  requirementProfiles    CustomerRequirementProfile[]
+  fileAssets             FileAsset[]
+  auditLogs              AuditLog[]
+}
+
+model User {
+  id           String     @id @default(uuid()) @db.Uuid
+  email        String     @unique
+  passwordHash String
+  name         String
+  status       UserStatus @default(active)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  lastLoginAt  DateTime?
+
+  memberships      Membership[]
+  createdObjects   ConstructionObject[] @relation("ObjectCreatedBy")
+  createdPackages  Package[]            @relation("PackageCreatedBy")
+  findingDecisions Finding[]            @relation("FindingDecidedBy")
+  findingHistory   FindingHistory[]
+  createdReports   Report[]             @relation("ReportCreatedBy")
+  auditLogs        AuditLog[]
+}
+
+model Membership {
+  id             String           @id @default(uuid()) @db.Uuid
+  organizationId String           @db.Uuid
+  userId         String           @db.Uuid
+  role           MembershipRole
+  status         MembershipStatus @default(invited)
+  createdAt      DateTime         @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
+
+  @@unique([organizationId, userId])
+}
+
+model ObjectGroup {
+  id          String  @id @default(uuid()) @db.Uuid
+  code        String  @unique
+  name        String
+  description String?
+  active      Boolean @default(true)
+
+  types ObjectType[]
+}
+
+model ObjectType {
+  id          String  @id @default(uuid()) @db.Uuid
+  groupId     String  @db.Uuid
+  code        String  @unique
+  name        String
+  description String?
+  active      Boolean @default(true)
+
+  group             ObjectGroup          @relation(fields: [groupId], references: [id])
+  objects           ConstructionObject[]
+  requirementSets   RequirementSet[]
+}
+
+model WorkType {
+  id          String  @id @default(uuid()) @db.Uuid
+  code        String  @unique
+  name        String
+  description String?
+  active      Boolean @default(true)
+
+  objectLinks     ObjectWorkType[]
+  requirementSets RequirementSet[]
+  bindings        ObjectRequirementBinding[]
+}
+
+model ConstructionObject {
+  id                     String       @id @default(uuid()) @db.Uuid
+  organizationId         String       @db.Uuid
+  objectTypeId           String       @db.Uuid
+  customerOrganizationId String?      @db.Uuid
+  contractorOrganizationId String?    @db.Uuid
+  customerProfileId      String?      @db.Uuid
+  code                   String
+  name                   String
+  address                String?
+  status                 ObjectStatus @default(draft)
+  description            String?
+  startDate              DateTime?    @db.Date
+  plannedEndDate         DateTime?    @db.Date
+  actualEndDate          DateTime?    @db.Date
+  createdById            String       @db.Uuid
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+  archivedAt             DateTime?
+
+  organization         Organization  @relation("WorkspaceOrg", fields: [organizationId], references: [id])
+  objectType           ObjectType    @relation(fields: [objectTypeId], references: [id])
+  customerOrganization Organization? @relation("CustomerOrg", fields: [customerOrganizationId], references: [id])
+  contractorOrganization Organization? @relation("ContractorOrg", fields: [contractorOrganizationId], references: [id])
+  customerProfile      CustomerRequirementProfile? @relation(fields: [customerProfileId], references: [id])
+  createdBy            User          @relation("ObjectCreatedBy", fields: [createdById], references: [id])
+
+  workTypes  ObjectWorkType[]
+  bindings   ObjectRequirementBinding[]
+  packages   Package[]
+  documents  Document[]
+  findings   Finding[]
+  checklists Checklist[]
+  reports    Report[]
+
+  @@unique([organizationId, code])
+}
+
+model ObjectWorkType {
+  id         String @id @default(uuid()) @db.Uuid
+  objectId   String @db.Uuid
+  workTypeId String @db.Uuid
+  status     String @default("active")
+
+  object   ConstructionObject @relation(fields: [objectId], references: [id])
+  workType WorkType           @relation(fields: [workTypeId], references: [id])
+
+  @@unique([objectId, workTypeId])
+}
+
+model CustomerRequirementProfile {
+  id             String               @id @default(uuid()) @db.Uuid
+  organizationId String               @db.Uuid
+  name           String
+  version        String
+  status         RequirementSetStatus @default(draft)
+
+  organization    Organization         @relation(fields: [organizationId], references: [id])
+  requirementSets RequirementSet[]
+  objects         ConstructionObject[]
+}
+
+model RequirementSet {
+  id                String               @id @default(uuid()) @db.Uuid
+  objectTypeId      String               @db.Uuid
+  workTypeId        String               @db.Uuid
+  customerProfileId String?              @db.Uuid
+  name              String
+  version           String
+  status            RequirementSetStatus @default(draft)
+
+  objectType      ObjectType                   @relation(fields: [objectTypeId], references: [id])
+  workType        WorkType                     @relation(fields: [workTypeId], references: [id])
+  customerProfile CustomerRequirementProfile?  @relation(fields: [customerProfileId], references: [id])
+  items           RequirementItem[]
+  bindings        ObjectRequirementBinding[]
+}
+
+model RequirementItem {
+  id               String      @id @default(uuid()) @db.Uuid
+  requirementSetId String      @db.Uuid
+  documentTypeId   String      @db.Uuid
+  title            String
+  required         Boolean     @default(true)
+  minCount         Int         @default(1)
+  maxCount         Int?
+  criticality      Criticality @default(medium)
+  ruleId           String?     @db.Uuid
+  active           Boolean     @default(true)
+
+  requirementSet RequirementSet  @relation(fields: [requirementSetId], references: [id])
+  documentType   DocumentType    @relation(fields: [documentTypeId], references: [id])
+  rule           Rule?           @relation(fields: [ruleId], references: [id])
+  checklistItems ChecklistItem[]
+}
+
+model ObjectRequirementBinding {
+  id               String   @id @default(uuid()) @db.Uuid
+  objectId         String   @db.Uuid
+  workTypeId       String   @db.Uuid
+  requirementSetId String   @db.Uuid
+  boundAt          DateTime @default(now())
+
+  object         ConstructionObject @relation(fields: [objectId], references: [id])
+  workType       WorkType           @relation(fields: [workTypeId], references: [id])
+  requirementSet RequirementSet     @relation(fields: [requirementSetId], references: [id])
+
+  @@unique([objectId, workTypeId])
+}
+
+model DocumentType {
+  id          String  @id @default(uuid()) @db.Uuid
+  code        String  @unique
+  name        String
+  description String?
+  active      Boolean @default(true)
+
+  requirementItems RequirementItem[]
+  documents        Document[]
+}
+
+model FileAsset {
+  id                String   @id @default(uuid()) @db.Uuid
+  organizationId    String   @db.Uuid
+  storageProvider   String   @default("yandex")
+  bucket            String
+  objectKey         String
+  originalFileName  String
+  mimeType          String
+  sizeBytes         BigInt
+  sha256            String   @db.Char(64)
+  uploadedAt        DateTime @default(now())
+  checksumVerified  Boolean  @default(false)
+  duplicateOfId     String?  @db.Uuid
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  duplicateOf  FileAsset?   @relation("FileDuplicate", fields: [duplicateOfId], references: [id])
+  duplicates   FileAsset[]  @relation("FileDuplicate")
+  documents    Document[]
+
+  @@unique([organizationId, sha256])
+  @@unique([bucket, objectKey])
+}
+
+model Package {
+  id             String        @id @default(uuid()) @db.Uuid
+  objectId       String        @db.Uuid
+  version        Int
+  status         PackageStatus @default(uploading)
+  progress       Decimal       @default(0) @db.Decimal(5, 2)
+  documentsCount Int           @default(0)
+  createdById    String        @db.Uuid
+  createdAt      DateTime      @default(now())
+  finishedAt     DateTime?
+
+  object     ConstructionObject @relation(fields: [objectId], references: [id])
+  createdBy  User               @relation("PackageCreatedBy", fields: [createdById], references: [id])
+  documents  Document[]
+  findings   Finding[]
+  checklist  Checklist?
+  reports    Report[]
+
+  @@unique([objectId, version])
+}
+
+model Document {
+  id                 String         @id @default(uuid()) @db.Uuid
+  objectId           String         @db.Uuid
+  packageId          String         @db.Uuid
+  fileAssetId        String?        @db.Uuid
+  documentTypeId     String?        @db.Uuid
+  fileName           String
+  mimeType           String
+  typeConfidence     Decimal?       @db.Decimal(5, 4)
+  typeEditedManually Boolean        @default(false)
+  status             DocumentStatus @default(awaiting_upload)
+  createdAt          DateTime       @default(now())
+
+  object       ConstructionObject @relation(fields: [objectId], references: [id])
+  package      Package            @relation(fields: [packageId], references: [id])
+  fileAsset    FileAsset?         @relation(fields: [fileAssetId], references: [id])
+  documentType DocumentType?      @relation(fields: [documentTypeId], references: [id])
+
+  stageRuns       DocumentStageRun[]
+  sourceRefs      SourceRef[]
+  extractedFields ExtractedField[]
+  findings        Finding[]
+  checklistLinks  ChecklistItemDocument[]
+}
+
+model DocumentStageRun {
+  id            String      @id @default(uuid()) @db.Uuid
+  documentId    String      @db.Uuid
+  stage         StageName
+  status        StageStatus @default(pending)
+  attempt       Int         @default(1)
+  startedAt     DateTime?
+  finishedAt    DateTime?
+  errorCode     String?
+  errorMessage  String?
+  workerId      String?
+  inputVersion  String?
+  outputVersion String?
+
+  document Document @relation(fields: [documentId], references: [id])
+
+  @@index([documentId, stage])
+}
+
+model SourceRef {
+  id         String     @id @default(uuid()) @db.Uuid
+  documentId String     @db.Uuid
+  kind       SourceKind
+  page       Int?
+  bbox       Json?
+  sheet      String?
+  cell       String?
+  paragraph  Int?
+  tableRef   String?
+  quote      String?
+
+  document        Document         @relation(fields: [documentId], references: [id])
+  extractedFields ExtractedField[]
+  findingLinks    FindingSource[]
+}
+
+model ExtractedField {
+  id             String   @id @default(uuid()) @db.Uuid
+  documentId     String   @db.Uuid
+  sourceRefId    String?  @db.Uuid
+  key            String
+  label          String
+  valueText      String?
+  valueJson      Json?
+  confidence     Decimal? @db.Decimal(5, 4)
+  editedManually Boolean  @default(false)
+  originalValue  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  document  Document   @relation(fields: [documentId], references: [id])
+  sourceRef SourceRef? @relation(fields: [sourceRefId], references: [id])
+
+  @@index([documentId, key])
+}
+
+model NormativeSource {
+  id            String    @id @default(uuid()) @db.Uuid
+  code          String
+  name          String
+  version       String
+  sourceType    String
+  effectiveFrom DateTime? @db.Date
+  effectiveTo   DateTime? @db.Date
+  officialUrl   String?
+  storageKey    String?
+  checksum      String?
+  active        Boolean   @default(true)
+
+  ruleVersions RuleVersion[]
+
+  @@unique([code, version])
+}
+
+model Rule {
+  id     String  @id @default(uuid()) @db.Uuid
+  code   String  @unique
+  name   String
+  active Boolean @default(true)
+
+  versions         RuleVersion[]
+  requirementItems RequirementItem[]
+}
+
+model RuleVersion {
+  id                String          @id @default(uuid()) @db.Uuid
+  ruleId            String          @db.Uuid
+  version           String
+  normativeSourceId String?         @db.Uuid
+  severity          FindingSeverity
+  active            Boolean         @default(true)
+
+  rule            Rule             @relation(fields: [ruleId], references: [id])
+  normativeSource NormativeSource? @relation(fields: [normativeSourceId], references: [id])
+  findings        Finding[]
+
+  @@unique([ruleId, version])
+}
+
+model Finding {
+  id            String          @id @default(uuid()) @db.Uuid
+  objectId      String          @db.Uuid
+  documentId    String          @db.Uuid
+  packageId     String          @db.Uuid
+  ruleVersionId String          @db.Uuid
+  severity      FindingSeverity
+  message       String
+  explanation   String?
+  expected      String?
+  actual        String?
+  normRef       String?
+  confidence    Decimal?        @db.Decimal(5, 4)
+  status        FindingStatus   @default(open)
+  comment       String?
+  decidedById   String?         @db.Uuid
+  decidedAt     DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  object      ConstructionObject @relation(fields: [objectId], references: [id])
+  document    Document           @relation(fields: [documentId], references: [id])
+  package     Package            @relation(fields: [packageId], references: [id])
+  ruleVersion RuleVersion        @relation(fields: [ruleVersionId], references: [id])
+  decidedBy   User?              @relation("FindingDecidedBy", fields: [decidedById], references: [id])
+  history     FindingHistory[]
+  sources     FindingSource[]
+}
+
+model FindingSource {
+  findingId   String @db.Uuid
+  sourceRefId String @db.Uuid
+
+  finding   Finding   @relation(fields: [findingId], references: [id])
+  sourceRef SourceRef @relation(fields: [sourceRefId], references: [id])
+
+  @@id([findingId, sourceRefId])
+}
+
+model FindingHistory {
+  id         String        @id @default(uuid()) @db.Uuid
+  findingId  String        @db.Uuid
+  userId     String        @db.Uuid
+  fromStatus FindingStatus
+  toStatus   FindingStatus
+  comment    String?
+  createdAt  DateTime      @default(now())
+
+  finding Finding @relation(fields: [findingId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+}
+
+model Checklist {
+  id         String   @id @default(uuid()) @db.Uuid
+  objectId   String   @db.Uuid
+  packageId  String   @unique @db.Uuid
+  readiness  Decimal  @default(0) @db.Decimal(5, 2)
+  createdAt  DateTime @default(now())
+
+  object  ConstructionObject @relation(fields: [objectId], references: [id])
+  package Package            @relation(fields: [packageId], references: [id])
+  items   ChecklistItem[]
+}
+
+model ChecklistItem {
+  id                String              @id @default(uuid()) @db.Uuid
+  checklistId       String              @db.Uuid
+  requirementItemId String              @db.Uuid
+  status            ChecklistItemStatus
+  requiredCount     Int
+  foundCount        Int
+
+  checklist       Checklist               @relation(fields: [checklistId], references: [id])
+  requirementItem RequirementItem         @relation(fields: [requirementItemId], references: [id])
+  documents       ChecklistItemDocument[]
+
+  @@unique([checklistId, requirementItemId])
+}
+
+model ChecklistItemDocument {
+  checklistItemId String @db.Uuid
+  documentId      String @db.Uuid
+
+  checklistItem ChecklistItem @relation(fields: [checklistItemId], references: [id])
+  document      Document      @relation(fields: [documentId], references: [id])
+
+  @@id([checklistItemId, documentId])
+}
+
+model Report {
+  id            String       @id @default(uuid()) @db.Uuid
+  objectId      String       @db.Uuid
+  packageId     String       @db.Uuid
+  status        ReportStatus @default(queued)
+  version       Int
+  scope         ReportScope
+  recipient     String?
+  findingsCount Int          @default(0)
+  disclaimer    String       @default("Замечания AI являются рекомендацией. В отчёт включены решения инженера.")
+  createdById   String       @db.Uuid
+  createdAt     DateTime     @default(now())
+  readyAt       DateTime?
+  storageKey    String?
+
+  object    ConstructionObject @relation(fields: [objectId], references: [id])
+  package   Package            @relation(fields: [packageId], references: [id])
+  createdBy User               @relation("ReportCreatedBy", fields: [createdById], references: [id])
+
+  @@unique([packageId, version])
+}
+
+model AuditLog {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  actorId        String?  @db.Uuid
+  action         String
+  entityType     String
+  entityId       String
+  payload        Json?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  actor        User?        @relation(fields: [actorId], references: [id])
+
+  @@index([organizationId, createdAt])
+  @@index([entityType, entityId])
+}

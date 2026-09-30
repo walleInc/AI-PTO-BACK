@@ -1,0 +1,49 @@
+@startuml AI-PTO_StateMachines_v0_2
+state "Объект" as Object {
+  [*] --> draft
+  draft --> active
+  active --> on_hold
+  on_hold --> active
+  active --> completed
+  completed --> archived
+  draft --> archived
+  active --> archived
+  on_hold --> archived
+}
+state "Пакет" as Package {
+  [*] --> uploading
+  uploading --> queued : все файлы checksumVerified
+  uploading --> failed : отмена
+  queued --> processing
+  processing --> done : все документы done
+  processing --> partial : часть документов failed
+  processing --> failed : ни один документ не done
+  partial --> queued : повтор упавших
+  failed --> queued : повтор
+}
+state "Стадия документа" as Stage {
+  [*] --> pending
+  pending --> running
+  running --> succeeded
+  running --> failed
+  failed --> running : attempt < 3
+  failed --> skipped : не требуется, например ocr
+  pending --> skipped : ocr не нужен
+}
+state "Замечание" as Finding {
+  [*] --> open
+  open --> accepted
+  open --> dismissed : comment обязателен
+  open --> fixed
+  accepted --> open : reopen, пишется history
+  dismissed --> open : reopen, пишется history
+  fixed --> open : reopen, пишется history
+}
+state "Отчёт" as Report {
+  [*] --> queued
+  queued --> generating
+  generating --> ready
+  generating --> failed
+  failed --> queued : повтор
+}
+@enduml

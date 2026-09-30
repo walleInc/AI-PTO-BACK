@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="Definitions_AI_PTO" targetNamespace="https://ai-pto.local/bpmn">
+  <bpmn:process id="DocumentReviewProcess" name="AI-ПТО v0.2: обработка пакета" isExecutable="false">
+    <bpmn:startEvent id="Start" name="Новый пакет"/>
+    <bpmn:task id="CreatePackage" name="Создать пакет и документы awaiting_upload"/>
+    <bpmn:task id="UploadFiles" name="PUT файлов в Object Storage"/>
+    <bpmn:task id="CompleteUpload" name="Подтвердить загрузку и checksum"/>
+    <bpmn:exclusiveGateway id="AllFilesUploaded" name="Все файлы checksumVerified?"/>
+    <bpmn:task id="StartProcessing" name="Запустить обработку"/>
+    <bpmn:task id="Extract" name="Extract"/>
+    <bpmn:exclusiveGateway id="NeedsOCR" name="Нужен OCR?"/>
+    <bpmn:task id="OCR" name="OCR"/>
+    <bpmn:task id="Classify" name="Classify"/>
+    <bpmn:task id="Parse" name="Parse"/>
+    <bpmn:task id="Rules" name="Rules: замечания только по существующему документу"/>
+    <bpmn:task id="Explain" name="Explain"/>
+    <bpmn:exclusiveGateway id="StageOk" name="Стадия успешна?"/>
+    <bpmn:exclusiveGateway id="CanRetry" name="Попытка меньше 3?"/>
+    <bpmn:task id="RetryStage" name="Повторить упавшую стадию"/>
+    <bpmn:task id="MarkDocFailed" name="Документ failed"/>
+    <bpmn:exclusiveGateway id="MoreDocs" name="Есть ещё документы?"/>
+    <bpmn:task id="Checklist" name="Чеклист: missing / partial / complete"/>
+    <bpmn:exclusiveGateway id="PackageOutcome" name="Итог пакета"/>
+    <bpmn:task id="MarkPartial" name="Пакет partial"/>
+    <bpmn:task id="MarkFailed" name="Пакет failed"/>
+    <bpmn:task id="MarkDone" name="Пакет done"/>
+    <bpmn:task id="ReviewFindings" name="Инженер разбирает замечания"/>
+    <bpmn:exclusiveGateway id="Decision" name="Решение"/>
+    <bpmn:task id="Accept" name="accepted"/>
+    <bpmn:task id="Dismiss" name="dismissed + обязательный комментарий"/>
+    <bpmn:intermediateCatchEvent id="Defer" name="Отложить">
+      <bpmn:timerEventDefinition id="TimerDefer"/>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:exclusiveGateway id="WantReport" name="Сформировать отчёт?"/>
+    <bpmn:task id="GenerateReport" name="PDF по scope: accepted / errors / all_open"/>
+    <bpmn:endEvent id="End" name="Проверка зафиксирована"/>
+    <bpmn:endEvent id="EndFailed" name="Пакет не обработан"/>
+    <bpmn:sequenceFlow id="F1" sourceRef="Start" targetRef="CreatePackage"/>
+    <bpmn:sequenceFlow id="F2" sourceRef="CreatePackage" targetRef="UploadFiles"/>
+    <bpmn:sequenceFlow id="F3" sourceRef="UploadFiles" targetRef="CompleteUpload"/>
+    <bpmn:sequenceFlow id="F4" sourceRef="CompleteUpload" targetRef="AllFilesUploaded"/>
+    <bpmn:sequenceFlow id="F5" sourceRef="AllFilesUploaded" targetRef="UploadFiles" name="Нет"/>
+    <bpmn:sequenceFlow id="F6" sourceRef="AllFilesUploaded" targetRef="StartProcessing" name="Да"/>
+    <bpmn:sequenceFlow id="F7" sourceRef="StartProcessing" targetRef="Extract"/>
+    <bpmn:sequenceFlow id="F8" sourceRef="Extract" targetRef="NeedsOCR"/>
+    <bpmn:sequenceFlow id="F9" sourceRef="NeedsOCR" targetRef="OCR" name="Да"/>
+    <bpmn:sequenceFlow id="F10" sourceRef="OCR" targetRef="Classify"/>
+    <bpmn:sequenceFlow id="F11" sourceRef="NeedsOCR" targetRef="Classify" name="Нет"/>
+    <bpmn:sequenceFlow id="F12" sourceRef="Classify" targetRef="Parse"/>
+    <bpmn:sequenceFlow id="F13" sourceRef="Parse" targetRef="Rules"/>
+    <bpmn:sequenceFlow id="F14" sourceRef="Rules" targetRef="Explain"/>
+    <bpmn:sequenceFlow id="F15" sourceRef="Explain" targetRef="StageOk"/>
+    <bpmn:sequenceFlow id="F16" sourceRef="StageOk" targetRef="MoreDocs" name="Да"/>
+    <bpmn:sequenceFlow id="F17" sourceRef="StageOk" targetRef="CanRetry" name="Нет"/>
+    <bpmn:sequenceFlow id="F18" sourceRef="CanRetry" targetRef="RetryStage" name="Да"/>
+    <bpmn:sequenceFlow id="F19" sourceRef="RetryStage" targetRef="Extract"/>
+    <bpmn:sequenceFlow id="F20" sourceRef="CanRetry" targetRef="MarkDocFailed" name="Нет"/>
+    <bpmn:sequenceFlow id="F21" sourceRef="MarkDocFailed" targetRef="MoreDocs"/>
+    <bpmn:sequenceFlow id="F22" sourceRef="MoreDocs" targetRef="Extract" name="Да"/>
+    <bpmn:sequenceFlow id="F23" sourceRef="MoreDocs" targetRef="Checklist" name="Нет"/>
+    <bpmn:sequenceFlow id="F24" sourceRef="Checklist" targetRef="PackageOutcome"/>
+    <bpmn:sequenceFlow id="F25" sourceRef="PackageOutcome" targetRef="MarkDone" name="Все done"/>
+    <bpmn:sequenceFlow id="F26" sourceRef="PackageOutcome" targetRef="MarkPartial" name="Часть failed"/>
+    <bpmn:sequenceFlow id="F27" sourceRef="PackageOutcome" targetRef="MarkFailed" name="Ни один не done"/>
+    <bpmn:sequenceFlow id="F28" sourceRef="MarkFailed" targetRef="EndFailed"/>
+    <bpmn:sequenceFlow id="F29" sourceRef="MarkDone" targetRef="ReviewFindings"/>
+    <bpmn:sequenceFlow id="F30" sourceRef="MarkPartial" targetRef="ReviewFindings"/>
+    <bpmn:sequenceFlow id="F31" sourceRef="ReviewFindings" targetRef="Decision"/>
+    <bpmn:sequenceFlow id="F32" sourceRef="Decision" targetRef="Accept" name="Принять"/>
+    <bpmn:sequenceFlow id="F33" sourceRef="Decision" targetRef="Dismiss" name="Отклонить"/>
+    <bpmn:sequenceFlow id="F34" sourceRef="Decision" targetRef="Defer" name="Отложить"/>
+    <bpmn:sequenceFlow id="F35" sourceRef="Defer" targetRef="ReviewFindings"/>
+    <bpmn:sequenceFlow id="F36" sourceRef="Accept" targetRef="WantReport"/>
+    <bpmn:sequenceFlow id="F37" sourceRef="Dismiss" targetRef="WantReport"/>
+    <bpmn:sequenceFlow id="F38" sourceRef="WantReport" targetRef="ReviewFindings" name="Ещё замечания"/>
+    <bpmn:sequenceFlow id="F39" sourceRef="WantReport" targetRef="GenerateReport" name="Да, по scope"/>
+    <bpmn:sequenceFlow id="F40" sourceRef="GenerateReport" targetRef="End"/>
+  </bpmn:process>
+</bpmn:definitions>
