@@ -19,7 +19,8 @@ export type PackageStatus = "uploading" | "queued" | "processing" | "done" | "pa
 export type ChecklistStatus = "missing" | "partial" | "complete";
 export type ReportStatus = "queued" | "generating" | "ready" | "failed";
 export type ReportScope = "accepted" | "errors" | "all_open";
-export type UserRole = "engineer" | "contractor";
+export type UserRole = "owner" | "engineer";
+export type ObjectStatus = "draft" | "active" | "on_hold" | "completed" | "archived";
 
 export interface ApiError {
   code: string;
@@ -48,43 +49,80 @@ export interface User {
   role: UserRole;
 }
 
+/** Alias for stage-1 OpenAPI `Me`. */
+export type Me = User;
+
 export interface ProtectedResponse {
   ok: boolean;
   user: User;
 }
 
+export interface ObjectGroupRef {
+  id: string;
+  code: string;
+  name: string;
+}
+
+export interface ObjectType {
+  id: string;
+  code: string;
+  name: string;
+  description?: string | null;
+  group: ObjectGroupRef;
+}
+
 export interface WorkType {
   id: string;
+  code: string;
   name: string;
+  description?: string | null;
 }
 
-export interface ObjectInput {
+export interface Counterparty {
+  id: string;
   name: string;
-  address?: string;
-  customer?: string;
-  contractor?: string;
-  workTypeId: string;
+  slug: string;
 }
 
-export interface ObjectUpdate {
-  name?: string;
-  address?: string;
-  customer?: string;
-  contractor?: string;
-  workTypeId?: string;
+export interface ObjectWrite {
+  code: string;
+  name: string;
+  objectTypeId: string;
+  workTypeIds: string[];
+  address?: string | null;
+  customerOrganizationId?: string | null;
+  contractorOrganizationId?: string | null;
+  /** Ignored on this stage — requirement profiles are not implemented yet. */
+  customerProfileId?: string | null;
+  description?: string | null;
+}
+
+export interface ObjectStatusChange {
+  status: Exclude<ObjectStatus, "archived">;
+}
+
+export interface OrganizationRef {
+  id: string;
+  name: string;
 }
 
 export interface ConstructionObject {
   id: string;
+  code: string;
   name: string;
-  address?: string | null;
-  customer?: string | null;
-  contractor?: string | null;
-  workTypeId: string;
-  readiness?: number;
-  lastCheckedAt?: string | null;
+  address: string | null;
+  status: ObjectStatus;
+  description: string | null;
+  objectType: ObjectType;
+  customer: OrganizationRef | null;
+  contractor: OrganizationRef | null;
+  workTypes: WorkType[];
+  startDate: string | null;
+  plannedEndDate: string | null;
+  actualEndDate: string | null;
   createdAt: string;
   updatedAt: string;
+  archivedAt: string | null;
 }
 
 export interface PackageCreateFile {
@@ -267,6 +305,7 @@ export interface PageQuery {
 export interface ListObjectsQuery extends PageQuery {
   q?: string;
   sort?: string;
+  includeArchived?: boolean | string;
 }
 
 export interface ListDocumentsQuery extends PageQuery {

@@ -1,0 +1,53 @@
+@startuml AI-PTO_UML_UseCases_v0_2
+left to right direction
+skinparam packageStyle rectangle
+actor "Владелец организации" as Owner
+actor "Инженер ПТО" as Engineer
+rectangle "AI-ПТО MVP" {
+  usecase "Войти" as UC_Login
+  usecase "Открыть ЛК" as UC_LK
+  usecase "Пригласить инженера" as UC_Invite
+  usecase "Создать объект" as UC_CreateObject
+  usecase "Редактировать объект" as UC_EditObject
+  usecase "Архивировать объект" as UC_ArchiveObject
+  usecase "Настроить виды работ" as UC_WorkTypes
+  usecase "Создать пакет проверки" as UC_CreatePackage
+  usecase "Загрузить документы" as UC_Upload
+  usecase "Подтвердить загрузку" as UC_Complete
+  usecase "Запустить обработку" as UC_Start
+  usecase "Просматривать прогресс" as UC_Progress
+  usecase "Просматривать документы" as UC_Documents
+  usecase "Исправить извлечённое поле" as UC_EditField
+  usecase "Просматривать замечания" as UC_Findings
+  usecase "Принять / отклонить замечание" as UC_Decide
+  usecase "Проверять комплектность" as UC_Checklist
+  usecase "Сформировать отчёт" as UC_Report
+  usecase "Скачать отчёт" as UC_Download
+}
+rectangle "После MVP" {
+  usecase "Кабинет подрядчика" as UC_Contractor
+  usecase "Роли admin / reviewer / viewer" as UC_LaterRoles
+}
+Owner --> UC_Login
+Owner --> UC_Invite
+Owner --> UC_CreateObject
+Owner --> UC_EditObject
+Owner --> UC_ArchiveObject
+Engineer --> UC_Login
+Engineer --> UC_LK
+Engineer --> UC_CreateObject
+Engineer --> UC_EditObject
+Engineer --> UC_WorkTypes
+Engineer --> UC_CreatePackage
+Engineer --> UC_Upload
+Engineer --> UC_Complete
+Engineer --> UC_Start
+Engineer --> UC_Progress
+Engineer --> UC_Documents
+Engineer --> UC_EditField
+Engineer --> UC_Findings
+Engineer --> UC_Decide
+Engineer --> UC_Checklist
+Engineer --> UC_Report
+Engineer --> UC_Download
+@enduml

@@ -1,0 +1,395 @@
+openapi: 3.0.3
+info:
+  title: AI-ПТО API
+  version: 0.2.0
+  description: |
+    Контракт MVP. Сессия — HttpOnly cookie `ai_pto_session`.
+    Все выборки ограничены organizationId текущего membership.
+servers:
+  - url: /api
+tags:
+  - name: Auth
+  - name: Objects
+  - name: Packages
+  - name: Documents
+  - name: Findings
+  - name: Checklist
+  - name: Reports
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        "200":
+          description: Set-Cookie ai_pto_session
+        "401":
+          description: Неверные учётные данные
+  /auth/logout:
+    post:
+      tags: [Auth]
+      operationId: logout
+      responses:
+        "204":
+          description: Сессия удалена
+  /auth/me:
+    get:
+      tags: [Auth]
+      operationId: me
+      responses:
+        "200":
+          description: Текущий пользователь и membership
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Me"
+  /object-types:
+    get:
+      tags: [Objects]
+      operationId: listObjectTypes
+      responses:
+        "200":
+          description: Активные типы объектов с группой
+  /work-types:
+    get:
+      tags: [Objects]
+      operationId: listWorkTypes
+      responses:
+        "200":
+          description: Активные виды работ
+  /counterparties:
+    get:
+      tags: [Objects]
+      operationId: listCounterparties
+      responses:
+        "200":
+          description: Организации kind=counterparty для полей заказчик и подрядчик
+  /objects:
+    get:
+      tags: [Objects]
+      operationId: listObjects
+      responses:
+        "200":
+          description: Объекты арендатора
+    post:
+      tags: [Objects]
+      operationId: createObject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ObjectWrite"
+      responses:
+        "201":
+          description: Создан
+  /objects/{objectId}:
+    parameters:
+      - $ref: "#/components/parameters/ObjectId"
+    get:
+      tags: [Objects]
+      operationId: getObject
+      responses:
+        "200":
+          description: Карточка объекта, включая bindings требований
+    patch:
+      tags: [Objects]
+      operationId: updateObject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ObjectWrite"
+      responses:
+        "200":
+          description: Обновлён, bindings пересчитаны
+  /objects/{objectId}/status:
+    parameters:
+      - $ref: "#/components/parameters/ObjectId"
+    post:
+      tags: [Objects]
+      operationId: changeObjectStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [draft, active, on_hold, completed]
+      responses:
+        "200":
+          description: Переход по автомату состояний
+        "409":
+          description: Переход запрещён, в том числе из archived
+  /objects/{objectId}/archive:
+    parameters:
+      - $ref: "#/components/parameters/ObjectId"
+    post:
+      tags: [Objects]
+      operationId: archiveObject
+      responses:
+        "200":
+          description: status=archived, файлы сохранены
+  /objects/{objectId}/packages:
+    parameters:
+      - $ref: "#/components/parameters/ObjectId"
+    post:
+      tags: [Packages]
+      operationId: createPackage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [files]
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: object
+                    required: [fileName, mimeType, sizeBytes]
+                    properties:
+                      fileName: { type: string }
+                      mimeType: { type: string }
+                      sizeBytes: { type: integer, format: int64 }
+      responses:
+        "201":
+          description: Пакет uploading и signed URL по каждому документу
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PackageCreated"
+  /packages/{packageId}/documents/{documentId}/complete:
+    parameters:
+      - $ref: "#/components/parameters/PackageId"
+      - $ref: "#/components/parameters/DocumentId"
+    post:
+      tags: [Packages]
+      operationId: completeUpload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sha256, sizeBytes]
+              properties:
+                sha256: { type: string, minLength: 64, maxLength: 64 }
+                sizeBytes: { type: integer, format: int64 }
+      responses:
+        "200":
+          description: checksumVerified=true, дедуп внутри организации
+        "400":
+          description: Объект в хранилище не найден или хеш не сошёлся
+  /packages/{packageId}/start:
+    parameters:
+      - $ref: "#/components/parameters/PackageId"
+    post:
+      tags: [Packages]
+      operationId: startPackage
+      responses:
+        "202":
+          description: Пакет queued, задачи поставлены идемпотентно
+        "409":
+          description: Не все файлы checksumVerified или пакет уже processing
+  /packages/{packageId}/events:
+    parameters:
+      - $ref: "#/components/parameters/PackageId"
+    get:
+      tags: [Packages]
+      operationId: packageEvents
+      responses:
+        "200":
+          description: SSE. Событие progress. Истина статуса — GET пакета
+          content:
+            text/event-stream:
+              schema:
+                type: string
+  /packages/{packageId}:
+    parameters:
+      - $ref: "#/components/parameters/PackageId"
+    get:
+      tags: [Packages]
+      operationId: getPackage
+      responses:
+        "200":
+          description: Статус, progress, документы и стадии
+  /documents/{documentId}/fields/{fieldId}:
+    parameters:
+      - $ref: "#/components/parameters/DocumentId"
+      - name: fieldId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      tags: [Documents]
+      operationId: editField
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [valueText]
+              properties:
+                valueText: { type: string }
+      responses:
+        "200":
+          description: editedManually=true, originalValue сохранён, AuditLog записан
+  /objects/{objectId}/findings:
+    parameters:
+      - $ref: "#/components/parameters/ObjectId"
+    get:
+      tags: [Findings]
+      operationId: listFindings
+      responses:
+        "200":
+          description: Замечания объекта. Дыры комплектности здесь не приходят
+  /findings/{findingId}:
+    parameters:
+      - name: findingId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      tags: [Findings]
+      operationId: decideFinding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [open, accepted, dismissed, fixed]
+                comment: { type: string }
+      responses:
+        "200":
+          description: Статус и FindingHistory
+        "422":
+          description: dismissed или смена решения без comment
+  /packages/{packageId}/checklist:
+    parameters:
+      - $ref: "#/components/parameters/PackageId"
+    get:
+      tags: [Checklist]
+      operationId: getChecklist
+      responses:
+        "200":
+          description: Пункты missing/partial/complete и id документов
+  /packages/{packageId}/reports:
+    parameters:
+      - $ref: "#/components/parameters/PackageId"
+    post:
+      tags: [Reports]
+      operationId: createReport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [scope]
+              properties:
+                scope:
+                  type: string
+                  enum: [accepted, errors, all_open]
+                recipient: { type: string }
+      responses:
+        "202":
+          description: Отчёт queued. Не требует, чтобы все замечания были accepted
+  /reports/{reportId}/download:
+    parameters:
+      - name: reportId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      tags: [Reports]
+      operationId: downloadReport
+      responses:
+        "200":
+          description: signed URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url: { type: string }
+        "409":
+          description: Отчёт ещё не ready
+components:
+  parameters:
+    ObjectId:
+      name: objectId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    PackageId:
+      name: packageId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    DocumentId:
+      name: documentId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  schemas:
+    Me:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string }
+        name: { type: string }
+        organizationId: { type: string, format: uuid }
+        role:
+          type: string
+          enum: [owner, engineer]
+    ObjectWrite:
+      type: object
+      required: [code, name, objectTypeId, workTypeIds]
+      properties:
+        code: { type: string }
+        name: { type: string }
+        address: { type: string }
+        objectTypeId: { type: string, format: uuid }
+        customerOrganizationId: { type: string, format: uuid }
+        contractorOrganizationId: { type: string, format: uuid }
+        customerProfileId: { type: string, format: uuid }
+        workTypeIds:
+          type: array
+          items: { type: string, format: uuid }
+        description: { type: string }
+    PackageCreated:
+      type: object
+      properties:
+        packageId: { type: string, format: uuid }
+        version: { type: integer }
+        uploads:
+          type: array
+          items:
+            type: object
+            properties:
+              documentId: { type: string, format: uuid }
+              url: { type: string }
+              objectKey: { type: string }

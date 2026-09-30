@@ -3,7 +3,7 @@ import type { User, UserRole } from "../../common/dto/openapi.types";
 const ORG_CLAIM = "urn:zitadel:iam:user:resourceowner:id";
 const ROLES_CLAIM = "urn:zitadel:iam:org:project:roles";
 
-const ALLOWED_ROLES: UserRole[] = ["engineer", "contractor"];
+const ALLOWED_ROLES: UserRole[] = ["owner", "engineer"];
 
 export function mapOidcClaimsToUser(claims: Record<string, unknown>): User {
   const sub = claims.sub;

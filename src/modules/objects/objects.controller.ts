@@ -1,15 +1,43 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Query } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import type {
   ConstructionObject,
+  Counterparty,
   ListObjectsQuery,
-  ObjectInput,
-  ObjectUpdate,
-  PageMeta,
+  ObjectStatusChange,
+  ObjectType,
+  ObjectWrite,
+  User,
   WorkType,
 } from "../../common/dto/openapi.types";
+import { Roles, RolesGuard } from "../../common/guards/roles.guard";
+import { SessionGuard } from "../auth/session.guard";
 import { ObjectsService } from "./objects.service";
 
+@Controller("object-types")
+@UseGuards(SessionGuard)
+export class ObjectTypesController {
+  constructor(private readonly objectsService: ObjectsService) {}
+
+  @Get()
+  listObjectTypes(): Promise<ObjectType[]> {
+    return this.objectsService.listObjectTypes();
+  }
+}
+
 @Controller("work-types")
+@UseGuards(SessionGuard)
 export class WorkTypesController {
   constructor(private readonly objectsService: ObjectsService) {}
 
@@ -19,37 +47,69 @@ export class WorkTypesController {
   }
 }
 
+@Controller("counterparties")
+@UseGuards(SessionGuard)
+export class CounterpartiesController {
+  constructor(private readonly objectsService: ObjectsService) {}
+
+  @Get()
+  listCounterparties(): Promise<Counterparty[]> {
+    return this.objectsService.listCounterparties();
+  }
+}
+
 @Controller("objects")
+@UseGuards(SessionGuard)
 export class ObjectsController {
   constructor(private readonly objectsService: ObjectsService) {}
 
   @Get()
-  listObjects(@Query() query: ListObjectsQuery): Promise<{ items: ConstructionObject[]; meta: PageMeta }> {
-    return this.objectsService.listObjects(query);
+  listObjects(
+    @CurrentUser() user: User,
+    @Query() query: ListObjectsQuery,
+  ): Promise<ConstructionObject[]> {
+    return this.objectsService.listObjects(user, query);
   }
 
   @Post()
   @HttpCode(201)
-  createObject(@Body() body: ObjectInput): Promise<ConstructionObject> {
-    return this.objectsService.createObject(body);
+  createObject(@CurrentUser() user: User, @Body() body: ObjectWrite): Promise<ConstructionObject> {
+    return this.objectsService.createObject(user, body);
   }
 
   @Get(":objectId")
-  getObject(@Param("objectId", ParseUUIDPipe) objectId: string): Promise<ConstructionObject> {
-    return this.objectsService.getObject(objectId);
+  getObject(
+    @CurrentUser() user: User,
+    @Param("objectId", ParseUUIDPipe) objectId: string,
+  ): Promise<ConstructionObject> {
+    return this.objectsService.getObject(user, objectId);
   }
 
   @Patch(":objectId")
   updateObject(
+    @CurrentUser() user: User,
     @Param("objectId", ParseUUIDPipe) objectId: string,
-    @Body() body: ObjectUpdate,
+    @Body() body: ObjectWrite,
   ): Promise<ConstructionObject> {
-    return this.objectsService.updateObject(objectId, body);
+    return this.objectsService.updateObject(user, objectId, body);
   }
 
-  @Delete(":objectId")
-  @HttpCode(204)
-  deleteObject(@Param("objectId", ParseUUIDPipe) objectId: string): Promise<void> {
-    return this.objectsService.deleteObject(objectId);
+  @Post(":objectId/status")
+  changeStatus(
+    @CurrentUser() user: User,
+    @Param("objectId", ParseUUIDPipe) objectId: string,
+    @Body() body: ObjectStatusChange,
+  ): Promise<ConstructionObject> {
+    return this.objectsService.changeStatus(user, objectId, body);
+  }
+
+  @Post(":objectId/archive")
+  @UseGuards(RolesGuard)
+  @Roles("owner")
+  archiveObject(
+    @CurrentUser() user: User,
+    @Param("objectId", ParseUUIDPipe) objectId: string,
+  ): Promise<ConstructionObject> {
+    return this.objectsService.archiveObject(user, objectId);
   }
 }

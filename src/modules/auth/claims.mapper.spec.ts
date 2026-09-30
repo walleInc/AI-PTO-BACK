@@ -26,14 +26,14 @@ describe("mapOidcClaimsToUser", () => {
     expect(user.organizationId).toBe("");
   });
 
-  it("picks contractor role from ZITADEL roles claim", () => {
+  it("picks owner role from ZITADEL roles claim", () => {
     const user = mapOidcClaimsToUser({
       sub: "user-3",
       "urn:zitadel:iam:org:project:roles": {
-        contractor: { "org-1": "org-1.zitadel.ch" },
+        owner: { "org-1": "org-1.zitadel.ch" },
       },
     });
-    expect(user.role).toBe("contractor");
+    expect(user.role).toBe("owner");
   });
 
   it("throws when sub is missing", () => {

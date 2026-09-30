@@ -1,0 +1,79 @@
+@startuml AI-PTO_UML_Sequence_v0_2
+actor Engineer
+participant "React UI" as UI
+participant "NestJS API" as API
+database PostgreSQL as DB
+collections "Yandex Object Storage" as S3
+queue "BullMQ / Redis" as Q
+participant "Redis Pub/Sub" as PS
+participant "Extract / OCR" as EX
+participant "Classify / Parse" as CP
+participant "Rule Engine" as R
+participant "Explain Worker" as LLM
+participant "Report Worker" as REP
+
+Engineer -> UI : Создать пакет
+UI -> API : POST /objects/{id}/packages
+API -> DB : Package uploading + Documents awaiting_upload
+API --> UI : signed upload URLs
+loop каждый файл
+  UI -> S3 : PUT file
+  UI -> API : POST /packages/{id}/documents/{docId}/complete
+  API -> S3 : HEAD + checksum
+  API -> DB : FileAsset checksumVerified, tenant-safe sha256
+end
+UI -> API : POST /packages/{id}/start
+alt есть файл без checksumVerified
+  API --> UI : 409
+else все файлы подтверждены
+  API -> DB : status=queued, DocumentStageRun pending
+  API -> Q : enqueue document-extract (idempotent job id)
+  API --> UI : 202 Accepted
+end
+UI -> API : GET /packages/{id}/events
+API -> PS : subscribe package:{id}
+
+loop каждый документ
+  Q -> EX : extract
+  EX -> S3 : read file
+  alt нет текстового слоя
+    EX -> DB : stage ocr
+    EX -> Q : document-ocr
+    Q -> EX : ocr
+  end
+  EX -> DB : stage extract/ocr succeeded
+  EX -> PS : progress
+  EX -> Q : document-classify
+  Q -> CP : classify
+  CP -> DB : documentTypeId + confidence
+  CP -> Q : document-parse
+  Q -> CP : parse
+  CP -> DB : ExtractedField + SourceRef
+  CP -> Q : document-rules
+  Q -> R : rules
+  R -> DB : Finding (только по существующему документу)
+  R -> Q : document-explain
+  Q -> LLM : explain
+  LLM -> DB : explanation
+  EX -> PS : progress
+  alt стадия упала, attempt < 3
+    EX -> Q : retry той же очереди
+  else попытки исчерпаны
+    EX -> DB : document failed, package partial|failed
+    EX -> PS : progress
+  end
+end
+R -> DB : Checklist + ChecklistItemDocument
+API --> UI : SSE progress
+Engineer -> UI : решение по замечанию
+UI -> API : PATCH /findings/{id}
+API -> DB : status + FindingHistory\ndismissed требует comment
+Engineer -> UI : отчёт по scope
+UI -> API : POST /packages/{id}/reports
+API -> Q : report-generate
+Q -> REP : PDF
+REP -> S3 : store
+REP -> DB : status=ready
+UI -> API : GET /reports/{id}/download
+API --> UI : signed URL
+@enduml

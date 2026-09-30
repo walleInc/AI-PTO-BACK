@@ -1,0 +1,83 @@
+@startuml AI-PTO_UML_Component_v0_2
+skinparam componentStyle rectangle
+package "Frontend" { [React App] [React Query] [Zustand] }
+package "Backend / NestJS" {
+  [Auth Module]
+  [Organizations Module]
+  [Objects Module]
+  [Requirements Module]
+  [Packages Module]
+  [Documents Module]
+  [Processing Module]
+  [Findings Module]
+  [Checklist Module]
+  [Reports Module]
+  [Rules Module]
+  [Normatives Module]
+  [Audit Module]
+  [SSE Gateway]
+}
+package "Infrastructure" {
+  database "PostgreSQL" as PG
+  queue "Redis / BullMQ" as REDIS
+  cloud "Yandex Object Storage" as S3
+}
+package "Workers" {
+  [Extract Worker]
+  [OCR Worker\nPython / PaddleOCR]
+  [Classify Worker]
+  [Parse Worker]
+  [Rules Worker]
+  [Explain Worker]
+  [Report Worker]
+}
+package "External" { [LLM Provider] [Rule Engine] }
+[React App] --> [Auth Module]
+[React App] --> [Organizations Module]
+[React App] --> [Objects Module]
+[React App] --> [Requirements Module]
+[React App] --> [Packages Module]
+[React App] --> [Documents Module]
+[React App] --> [Findings Module]
+[React App] --> [Checklist Module]
+[React App] --> [Reports Module]
+[React Query] --> [React App]
+[Zustand] --> [React App]
+[Auth Module] --> PG
+[Organizations Module] --> PG
+[Objects Module] --> PG
+[Requirements Module] --> PG
+[Packages Module] --> PG
+[Documents Module] --> PG
+[Findings Module] --> PG
+[Checklist Module] --> PG
+[Reports Module] --> PG
+[Rules Module] --> PG
+[Normatives Module] --> PG
+[Audit Module] --> PG
+[Packages Module] --> S3
+[Documents Module] --> S3
+[Reports Module] --> S3
+[Processing Module] --> REDIS
+[SSE Gateway] --> REDIS
+[React App] --> [SSE Gateway]
+[Extract Worker] --> REDIS
+[OCR Worker\nPython / PaddleOCR] --> REDIS
+[Classify Worker] --> REDIS
+[Parse Worker] --> REDIS
+[Rules Worker] --> REDIS
+[Explain Worker] --> REDIS
+[Report Worker] --> REDIS
+[Extract Worker] --> S3
+[Extract Worker] --> PG
+[OCR Worker\nPython / PaddleOCR] --> S3
+[OCR Worker\nPython / PaddleOCR] --> PG
+[Classify Worker] --> PG
+[Parse Worker] --> PG
+[Rules Worker] --> [Rule Engine]
+[Rules Worker] --> PG
+[Explain Worker] --> [LLM Provider]
+[Explain Worker] --> PG
+[Report Worker] --> S3
+[Report Worker] --> PG
+@enduml

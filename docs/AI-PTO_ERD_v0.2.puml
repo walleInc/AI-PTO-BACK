@@ -1,0 +1,300 @@
+@startuml AI-PTO_ERD_v0_2
+hide methods
+hide stereotypes
+skinparam linetype ortho
+
+entity Organization {
+  * id : uuid
+  --
+  name : varchar
+  slug : varchar
+  kind : tenant | counterparty
+  status : enum
+}
+entity User {
+  * id : uuid
+  --
+  email : varchar
+  passwordHash : varchar
+  name : varchar
+  status : enum
+}
+entity Membership {
+  * id : uuid
+  --
+  organizationId : uuid
+  userId : uuid
+  role : owner | engineer
+  status : enum
+}
+entity ObjectGroup {
+  * id : uuid
+  --
+  code : varchar
+  name : varchar
+}
+entity ObjectType {
+  * id : uuid
+  --
+  groupId : uuid
+  code : varchar
+  name : varchar
+}
+entity WorkType {
+  * id : uuid
+  --
+  code : varchar
+  name : varchar
+}
+entity ConstructionObject {
+  * id : uuid
+  --
+  organizationId : uuid
+  objectTypeId : uuid
+  customerOrganizationId : uuid
+  contractorOrganizationId : uuid
+  customerProfileId : uuid
+  code : varchar
+  name : varchar
+  status : enum
+}
+entity ObjectWorkType {
+  * id : uuid
+  --
+  objectId : uuid
+  workTypeId : uuid
+}
+entity CustomerRequirementProfile {
+  * id : uuid
+  --
+  organizationId : uuid
+  name : varchar
+  version : varchar
+  status : enum
+}
+entity RequirementSet {
+  * id : uuid
+  --
+  objectTypeId : uuid
+  workTypeId : uuid
+  customerProfileId : uuid
+  name : varchar
+  version : varchar
+  status : enum
+}
+entity DocumentType {
+  * id : uuid
+  --
+  code : varchar
+  name : varchar
+  active : boolean
+}
+entity RequirementItem {
+  * id : uuid
+  --
+  requirementSetId : uuid
+  documentTypeId : uuid
+  required : boolean
+  minCount : int
+  criticality : enum
+}
+entity ObjectRequirementBinding {
+  * id : uuid
+  --
+  objectId : uuid
+  workTypeId : uuid
+  requirementSetId : uuid
+}
+entity FileAsset {
+  * id : uuid
+  --
+  organizationId : uuid
+  storageKey : varchar
+  sha256 : char(64)
+  checksumVerified : boolean
+}
+entity Package {
+  * id : uuid
+  --
+  objectId : uuid
+  version : int
+  status : enum
+  progress : decimal
+}
+entity Document {
+  * id : uuid
+  --
+  objectId : uuid
+  packageId : uuid
+  fileAssetId : uuid
+  documentTypeId : uuid
+  status : enum
+  typeConfidence : decimal
+}
+entity DocumentStageRun {
+  * id : uuid
+  --
+  documentId : uuid
+  stage : enum
+  status : enum
+  attempt : int
+}
+entity SourceRef {
+  * id : uuid
+  --
+  documentId : uuid
+  kind : pdf | xlsx | docx
+  page : int
+  bbox : jsonb
+  sheet : varchar
+  cell : varchar
+  quote : text
+}
+entity ExtractedField {
+  * id : uuid
+  --
+  documentId : uuid
+  sourceRefId : uuid
+  key : varchar
+  valueText : text
+  valueJson : jsonb
+  editedManually : boolean
+}
+entity NormativeSource {
+  * id : uuid
+  --
+  code : varchar
+  version : varchar
+  effectiveFrom : date
+  effectiveTo : date
+}
+entity Rule {
+  * id : uuid
+  --
+  code : varchar
+  name : varchar
+  active : boolean
+}
+entity RuleVersion {
+  * id : uuid
+  --
+  ruleId : uuid
+  version : varchar
+  normativeSourceId : uuid
+  severity : enum
+}
+entity Finding {
+  * id : uuid
+  --
+  objectId : uuid
+  documentId : uuid
+  packageId : uuid
+  ruleVersionId : uuid
+  severity : enum
+  status : enum
+  expected : text
+  actual : text
+  normRef : varchar
+  comment : text
+}
+entity FindingSource {
+  * findingId : uuid
+  * sourceRefId : uuid
+}
+entity FindingHistory {
+  * id : uuid
+  --
+  findingId : uuid
+  userId : uuid
+  fromStatus : enum
+  toStatus : enum
+  comment : text
+}
+entity Checklist {
+  * id : uuid
+  --
+  objectId : uuid
+  packageId : uuid
+  readiness : decimal
+}
+entity ChecklistItem {
+  * id : uuid
+  --
+  checklistId : uuid
+  requirementItemId : uuid
+  status : missing | partial | complete
+  requiredCount : int
+  foundCount : int
+}
+entity ChecklistItemDocument {
+  * checklistItemId : uuid
+  * documentId : uuid
+}
+entity Report {
+  * id : uuid
+  --
+  objectId : uuid
+  packageId : uuid
+  status : enum
+  version : int
+  scope : enum
+  storageKey : varchar
+}
+entity AuditLog {
+  * id : uuid
+  --
+  organizationId : uuid
+  actorId : uuid
+  action : varchar
+  entityType : varchar
+  entityId : uuid
+  payload : jsonb
+}
+
+Organization ||--o{ Membership
+User ||--o{ Membership
+ObjectGroup ||--o{ ObjectType
+ObjectType ||--o{ ConstructionObject
+Organization ||--o{ ConstructionObject : workspace
+Organization ||--o{ ConstructionObject : customer
+Organization ||--o{ ConstructionObject : contractor
+CustomerRequirementProfile ||--o{ ConstructionObject
+Organization ||--o{ CustomerRequirementProfile
+ConstructionObject ||--o{ ObjectWorkType
+WorkType ||--o{ ObjectWorkType
+ObjectType ||--o{ RequirementSet
+WorkType ||--o{ RequirementSet
+CustomerRequirementProfile ||--o{ RequirementSet
+RequirementSet ||--o{ RequirementItem
+DocumentType ||--o{ RequirementItem
+ConstructionObject ||--o{ ObjectRequirementBinding
+WorkType ||--o{ ObjectRequirementBinding
+RequirementSet ||--o{ ObjectRequirementBinding
+Organization ||--o{ FileAsset
+ConstructionObject ||--o{ Package
+Package ||--o{ Document
+Document }o--o| FileAsset
+Document }o--o| DocumentType
+Document ||--o{ DocumentStageRun
+Document ||--o{ SourceRef
+Document ||--o{ ExtractedField
+SourceRef ||--o{ ExtractedField
+Rule ||--o{ RuleVersion
+NormativeSource ||--o{ RuleVersion
+RuleVersion ||--o{ Finding
+Finding }o--|| Document
+Finding }o--|| Package
+Finding }o--|| ConstructionObject
+Finding ||--o{ FindingHistory
+Finding ||--o{ FindingSource
+SourceRef ||--o{ FindingSource
+User ||--o{ FindingHistory
+Package ||--o| Checklist
+Checklist ||--o{ ChecklistItem
+RequirementItem ||--o{ ChecklistItem
+ChecklistItem ||--o{ ChecklistItemDocument
+Document ||--o{ ChecklistItemDocument
+Package ||--o{ Report
+ConstructionObject ||--o{ Report
+Organization ||--o{ AuditLog
+@enduml
