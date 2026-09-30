@@ -39,6 +39,39 @@ docker compose --profile full up -d --build
 4. Браузер: [http://localhost:3000/api/auth/login](http://localhost:3000/api/auth/login) → логин ZITADEL → `/api/auth/me`.
 5. Проверка guard: `/api/protected`. Logout: `POST /api/auth/logout` с cookie `ai_pto_session`.
 
+## Objects (stage-1)
+
+Контракт: [`docs/openapi/openapi.yaml`](docs/openapi/openapi.yaml). Организация и роль берутся только из cookie-сессии, не из тела и не из query.
+
+| Метод | Путь | Примечание |
+| --- | --- | --- |
+| `GET` | `/api/object-types` | Активные типы с группой |
+| `GET` | `/api/work-types` | Активные виды работ |
+| `GET` | `/api/counterparties` | Организации `kind=counterparty` |
+| `GET` | `/api/objects` | Без `archived`, если нет `includeArchived=true` |
+| `POST` | `/api/objects` | Тело `ObjectWrite`, статус `draft` |
+| `GET` / `PATCH` | `/api/objects/{id}` | Чужой и несуществующий id → 404 |
+| `POST` | `/api/objects/{id}/status` | Автомат статусов; запретный переход → 409 |
+| `POST` | `/api/objects/{id}/archive` | Только роль `owner`; engineer → 403 |
+
+Для create/update в БД нужны сиды справочников (`ObjectType`, `WorkType`, counterparties) и строка `User` с `id` = OIDC `sub` (`createdById`). Сидов в репозитории пока нет — без них справочники вернут `[]`, а create упадёт на FK.
+
+## Проверка
+
+Авто (линт, типы, юнит-тесты рядом с кодом в `src/**/*.spec.ts`):
+
+```bash
+yarn lint && yarn typecheck && yarn test
+```
+
+Ручной smoke после логина (`/api/auth/me`, cookie `ai_pto_session`):
+
+1. `GET` справочники → взять `objectTypeId` и `workTypeIds`.
+2. `POST /api/objects` → `201`, `status: draft`.
+3. `GET /api/objects` → объект в списке; без флага archived не видны.
+4. `POST /api/objects/{id}/status` с `{ "status": "active" }` → `200`.
+5. `POST /api/objects/{id}/archive` под engineer → `403`; под owner → `200`, `status: archived`.
+
 ## Переменные окружения
 
 | Переменная | Где нужна | Пример / значение |
