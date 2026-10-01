@@ -144,13 +144,14 @@ enum RequirementSetStatus {
 }
 
 model Organization {
-  id        Uuid @id @default(uuid())
-  name      String
-  slug      String @unique
-  kind      OrganizationKind
-  status    OrganizationStatus @default(active)
-  createdAt TimestamptzString @default(now())
-  updatedAt temporal.updatedAtString()
+  id         Uuid @id @default(uuid())
+  name       String
+  slug       String @unique
+  kind       OrganizationKind
+  status     OrganizationStatus @default(active)
+  externalId String? @unique
+  createdAt  TimestamptzString @default(now())
+  updatedAt  temporal.updatedAtString()
 
   memberships            Membership[]
   workspaceObjects       ConstructionObject[] @relation("WorkspaceOrg")

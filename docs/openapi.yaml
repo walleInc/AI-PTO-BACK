@@ -975,7 +975,7 @@ components:
     # ---------- Пользователь ----------
     User:
       type: object
-      required: [id, email, name, organizationId, role]
+      required: [id, email, name, organizationId, organizationName, role]
       properties:
         id:
           type: string
@@ -985,6 +985,9 @@ components:
         organizationId:
           type: string
           description: ZITADEL organization / resource owner id
+        organizationName:
+          type: string
+          description: Имя организации из Postgres (Organization.name)
         role:
           type: string
           enum: [engineer, contractor]

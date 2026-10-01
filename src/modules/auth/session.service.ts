@@ -48,7 +48,11 @@ export class SessionService implements OnModuleDestroy {
     if (!raw) {
       return null;
     }
-    return JSON.parse(raw) as User;
+    const parsed = JSON.parse(raw) as User;
+    return {
+      ...parsed,
+      organizationName: parsed.organizationName ?? "",
+    };
   }
 
   async deleteSession(sessionId: string): Promise<void> {

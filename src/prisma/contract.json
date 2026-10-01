@@ -3211,6 +3211,13 @@
                   "kind": "scalar"
                 }
               },
+              "externalId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "id": {
                 "nullable": false,
                 "type": {
@@ -3349,6 +3356,9 @@
               "fields": {
                 "createdAt": {
                   "column": "createdAt"
+                },
+                "externalId": {
+                  "column": "externalId"
                 },
                 "id": {
                   "column": "id"
@@ -6808,6 +6818,11 @@
                   "nativeType": "timestamptz",
                   "nullable": false
                 },
+                "externalId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "id": {
                   "codecId": "pg/uuid@1",
                   "nativeType": "uuid",
@@ -6863,6 +6878,9 @@
               "uniques": [
                 {
                   "columns": ["slug"]
+                },
+                {
+                  "columns": ["externalId"]
                 }
               ]
             },
@@ -7862,7 +7880,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "eb708c08fb89d52bdcdb299e39f561f04defc01139117bcda513e94f373e51eb"
+    "storageHash": "92459a42f19e3d2c4af385204bd49e22dd666c062cf9d7f7b37b34ffcd01d21b"
   },
   "execution": {
     "executionHash": "dc2eb735c6012136e320a21188d8c8a8ac74fa7052e6891dc963d5397ecd9a92",

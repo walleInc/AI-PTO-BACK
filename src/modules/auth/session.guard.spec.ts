@@ -39,6 +39,7 @@ describe("SessionGuard", () => {
       email: "a@b.c",
       name: "A",
       organizationId: "org",
+      organizationName: "",
       role: "engineer" as const,
     };
     getSession.mockResolvedValue(user);

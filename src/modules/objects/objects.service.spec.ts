@@ -1,26 +1,11 @@
-import {
-  ConflictException,
-  ForbiddenException,
-  NotFoundException,
-  UnprocessableEntityException,
-} from "@nestjs/common";
+import { ConflictException, ForbiddenException, NotFoundException, UnprocessableEntityException } from "@nestjs/common";
 import { ObjectsService } from "./objects.service";
 import type { User } from "../../common/dto/openapi.types";
 
 function chainable(result: unknown) {
   const api: Record<string, jest.Mock> = {};
   const self = () => api;
-  for (const method of [
-    "where",
-    "include",
-    "orderBy",
-    "select",
-    "all",
-    "first",
-    "create",
-    "update",
-    "delete",
-  ]) {
+  for (const method of ["where", "include", "orderBy", "select", "all", "first", "create", "update", "delete"]) {
     api[method] = jest.fn(self);
   }
   api.all = jest.fn(() => Promise.resolve(Array.isArray(result) ? result : []));
@@ -83,6 +68,7 @@ describe("ObjectsService", () => {
     email: "eng@example.com",
     name: "Engineer",
     organizationId: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    organizationName: "Test Org",
     role: "engineer",
   };
 
@@ -135,7 +121,7 @@ describe("ObjectsService", () => {
     organization.first.mockResolvedValue(null);
 
     await expect(
-      service.createObject(engineer, {
+      service.createObject(owner, {
         code: "A-1",
         name: "Test",
         objectTypeId: "type-1",
@@ -145,31 +131,61 @@ describe("ObjectsService", () => {
     ).rejects.toBeInstanceOf(UnprocessableEntityException);
   });
 
+  it("forbids engineer from creating objects", async () => {
+    await expect(
+      service.createObject(engineer, {
+        code: "A-1",
+        name: "Test",
+        objectTypeId: "type-1",
+        workTypeIds: ["wt-1"],
+      }),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it("forbids engineer from updating objects", async () => {
+    constructionObject.first.mockResolvedValue(makeObjectRow({ status: "draft" }));
+    await expect(
+      service.updateObject(engineer, "11111111-1111-1111-1111-111111111111", {
+        code: "A-1",
+        name: "X",
+        objectTypeId: "type-1",
+        workTypeIds: ["wt-1"],
+      }),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
   it("rejects illegal status transition with 409", async () => {
     constructionObject.first.mockResolvedValue(makeObjectRow({ status: "draft" }));
     await expect(
-      service.changeStatus(engineer, "11111111-1111-1111-1111-111111111111", { status: "completed" }),
+      service.changeStatus(owner, "11111111-1111-1111-1111-111111111111", { status: "completed" }),
     ).rejects.toBeInstanceOf(ConflictException);
+  });
+
+  it("forbids engineer from changing status", async () => {
+    constructionObject.first.mockResolvedValue(makeObjectRow({ status: "draft" }));
+    await expect(
+      service.changeStatus(engineer, "11111111-1111-1111-1111-111111111111", { status: "active" }),
+    ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
   it("forbids engineer from archiving", async () => {
     constructionObject.first.mockResolvedValue(makeObjectRow({ status: "active" }));
-    await expect(
-      service.archiveObject(engineer, "11111111-1111-1111-1111-111111111111"),
-    ).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(service.archiveObject(engineer, "11111111-1111-1111-1111-111111111111")).rejects.toBeInstanceOf(
+      ForbiddenException,
+    );
   });
 
   it("rejects second archive with 409", async () => {
     constructionObject.first.mockResolvedValue(makeObjectRow({ status: "archived" }));
-    await expect(
-      service.archiveObject(owner, "11111111-1111-1111-1111-111111111111"),
-    ).rejects.toBeInstanceOf(ConflictException);
+    await expect(service.archiveObject(owner, "11111111-1111-1111-1111-111111111111")).rejects.toBeInstanceOf(
+      ConflictException,
+    );
   });
 
   it("rejects editing archived object with 409", async () => {
     constructionObject.first.mockResolvedValue(makeObjectRow({ status: "archived" }));
     await expect(
-      service.updateObject(engineer, "11111111-1111-1111-1111-111111111111", {
+      service.updateObject(owner, "11111111-1111-1111-1111-111111111111", {
         code: "A-1",
         name: "X",
         objectTypeId: "type-1",

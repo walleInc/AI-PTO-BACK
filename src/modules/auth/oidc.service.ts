@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  OnModuleInit,
-  ServiceUnavailableException,
-} from "@nestjs/common";
+import { Injectable, InternalServerErrorException, OnModuleInit, ServiceUnavailableException } from "@nestjs/common";
 import { Issuer, generators, type Client, type TokenSet } from "openid-client";
 import { loadZitadelPrivateJwks } from "./zitadel-key";
 
@@ -34,30 +29,44 @@ export class OidcService implements OnModuleInit {
     };
   }
 
-  async buildAuthorizationUrl(params: {
-    state: string;
-    codeChallenge: string;
-  }): Promise<string> {
+  async buildAuthorizationUrl(params: { state: string; codeChallenge: string }): Promise<string> {
     const client = await this.ensureClient();
     return client.authorizationUrl({
-      scope: "openid profile email",
+      // projects:roles — org/project roles in token/userinfo without Console claim toggles
+      scope: "openid profile email urn:zitadel:iam:org:projects:roles",
       code_challenge: params.codeChallenge,
       code_challenge_method: "S256",
       state: params.state,
     });
   }
 
-  async exchangeCode(params: {
-    code: string;
-    state: string;
-    codeVerifier: string;
-  }): Promise<TokenSet> {
+  async exchangeCode(params: { code: string; state: string; codeVerifier: string }): Promise<TokenSet> {
     const client = await this.ensureClient();
     return client.callback(
       this.getRedirectUri(),
       { code: params.code, state: params.state },
       { code_verifier: params.codeVerifier, state: params.state },
     );
+  }
+
+  /**
+   * ID token claims merged with OIDC UserInfo (UserInfo wins on overlap).
+   * ZITADEL often puts resourceowner / roles on UserInfo even when ID token is minimal.
+   */
+  async loadClaims(tokenSet: TokenSet): Promise<Record<string, unknown>> {
+    const idClaims = (tokenSet.claims() ?? {}) as Record<string, unknown>;
+    const accessToken = tokenSet.access_token;
+    if (!accessToken) {
+      return idClaims;
+    }
+
+    try {
+      const client = await this.ensureClient();
+      const userinfo = (await client.userinfo(accessToken)) as Record<string, unknown>;
+      return { ...idClaims, ...userinfo };
+    } catch {
+      return idClaims;
+    }
   }
 
   private readRedirectUri(): string {

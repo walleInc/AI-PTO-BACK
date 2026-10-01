@@ -21,3 +21,9 @@ export function sessionCookieOptions(maxAgeSeconds?: number) {
     ...(maxAgeSeconds !== undefined ? { maxAge: maxAgeSeconds * 1000 } : {}),
   };
 }
+
+/** Origin SPA. После OIDC callback браузер уходит на `{origin}/dashboard`. */
+export function postLoginRedirectUrl(): string {
+  const origin = (process.env.FRONTEND_ORIGIN ?? "http://localhost:5173").replace(/\/$/, "");
+  return `${origin}/dashboard`;
+}

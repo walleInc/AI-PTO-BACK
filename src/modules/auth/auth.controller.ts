@@ -1,18 +1,10 @@
-import {
-  Controller,
-  Get,
-  HttpCode,
-  Post,
-  Query,
-  Req,
-  Res,
-  UseGuards,
-} from "@nestjs/common";
+import { Controller, Get, HttpCode, Post, Query, Req, Res, UseGuards } from "@nestjs/common";
 import type { Request, Response } from "express";
 import type { User } from "../../common/dto/openapi.types";
 import {
   SESSION_COOKIE_NAME,
   getSessionTtlSeconds,
+  postLoginRedirectUrl,
   sessionCookieOptions,
 } from "./auth.constants";
 import { AuthService } from "./auth.service";
@@ -43,13 +35,13 @@ export class AuthController {
       error_description: errorDescription,
     });
     res.cookie(SESSION_COOKIE_NAME, sessionId, sessionCookieOptions(getSessionTtlSeconds()));
-    res.redirect(302, "/api/auth/me");
+    res.redirect(302, postLoginRedirectUrl());
   }
 
   @Get("me")
   @UseGuards(SessionGuard)
-  getMe(@Req() req: Request & { user: User }): User {
-    return req.user;
+  async getMe(@Req() req: Request & { user: User }): Promise<User> {
+    return this.authService.enrichUser(req.user);
   }
 
   @Post("logout")

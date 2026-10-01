@@ -30,11 +30,24 @@ services:
     restart: unless-stopped
     ports:
       - "${PORT:-3000}:3000"
+    # Host .env carries ZITADEL_* / SESSION_* / CORS_*; DB/Redis URLs below override localhost.
+    env_file:
+      - .env
     environment:
       PORT: "3000"
       # Inside the compose network use service hostname `postgres` and container port 5432
       DATABASE_URL: postgresql://pto:pto@postgres:5432/ai_pto
       REDIS_URL: redis://redis:6379
+      # Key path inside the container (host file is mounted below)
+      ZITADEL_KEY_PATH: /app/secrets/zitadel-app-key.json
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:5173}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+    volumes:
+      - ./secrets:/app/secrets:ro
+    # Reach host-published ports (e.g. other services). Local ZITADEL Traefik
+    # expects Host: localhost — for OIDC login prefer `yarn start:dev` on the host.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       postgres:
         condition: service_healthy

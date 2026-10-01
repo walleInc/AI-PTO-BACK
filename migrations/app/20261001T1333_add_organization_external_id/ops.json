@@ -1,0 +1,70 @@
+[
+  {
+    "id": "column.public.organization.externalId",
+    "label": "Add column \"externalId\" to \"organization\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "externalId",
+        "table": "organization"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"externalId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": ["public", "organization", "externalId"]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"externalId\"",
+        "sql": "ALTER TABLE \"public\".\"organization\" ADD COLUMN \"externalId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"externalId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": ["public", "organization", "externalId"]
+      }
+    ]
+  },
+  {
+    "id": "unique.organization.organization_externalId_key",
+    "label": "Add unique constraint on \"organization\" (externalId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "organization_externalId_key",
+        "table": "organization"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"organization_externalId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": ["organization_externalId_key", "public", "\"public\".\"organization\""]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"organization_externalId_key\"",
+        "sql": "ALTER TABLE \"public\".\"organization\" ADD CONSTRAINT \"organization_externalId_key\" UNIQUE (\"externalId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"organization_externalId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": ["organization_externalId_key", "public", "\"public\".\"organization\""]
+      }
+    ]
+  }
+]

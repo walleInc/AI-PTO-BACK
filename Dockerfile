@@ -8,7 +8,7 @@ RUN yarn install --frozen-lockfile --ignore-scripts
 FROM node:24-bookworm-slim AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY package.json yarn.lock nest-cli.json tsconfig.json tsconfig.build.json prisma.config.ts ./
+COPY package.json yarn.lock nest-cli.json tsconfig.json tsconfig.build.json prisma.config.ts webpack.config.cjs ./
 COPY src ./src
 RUN yarn build
 

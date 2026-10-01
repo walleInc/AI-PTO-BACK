@@ -46,6 +46,7 @@ export interface User {
   email: string;
   name: string;
   organizationId: string;
+  organizationName: string;
   role: UserRole;
 }
 
