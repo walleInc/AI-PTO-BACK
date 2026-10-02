@@ -43,18 +43,34 @@ docker compose --profile full up -d --build
 
 Контракт: [`docs/openapi/openapi.yaml`](docs/openapi/openapi.yaml). Организация и роль берутся только из cookie-сессии, не из тела и не из query.
 
-| Метод | Путь | Примечание |
-| --- | --- | --- |
-| `GET` | `/api/object-types` | Активные типы с группой |
-| `GET` | `/api/work-types` | Активные виды работ |
-| `GET` | `/api/counterparties` | Организации `kind=counterparty` |
-| `GET` | `/api/objects` | Без `archived`, если нет `includeArchived=true` |
-| `POST` | `/api/objects` | Тело `ObjectWrite`, статус `draft` |
-| `GET` / `PATCH` | `/api/objects/{id}` | Чужой и несуществующий id → 404 |
-| `POST` | `/api/objects/{id}/status` | Автомат статусов; запретный переход → 409 |
-| `POST` | `/api/objects/{id}/archive` | Только роль `owner`; engineer → 403 |
+| Метод           | Путь                        | Примечание                                      |
+| --------------- | --------------------------- | ----------------------------------------------- |
+| `GET`           | `/api/object-types`         | Активные типы с группой                         |
+| `GET`           | `/api/work-types`           | Активные виды работ                             |
+| `GET`           | `/api/counterparties`       | Организации `kind=counterparty`                 |
+| `GET`           | `/api/objects`              | Без `archived`, если нет `includeArchived=true` |
+| `POST`          | `/api/objects`              | Тело `ObjectWrite`, статус `draft`              |
+| `GET` / `PATCH` | `/api/objects/{id}`         | Чужой и несуществующий id → 404                 |
+| `POST`          | `/api/objects/{id}/status`  | Автомат статусов; запретный переход → 409       |
+| `POST`          | `/api/objects/{id}/archive` | Только роль `owner`; engineer → 403             |
 
-Для create/update в БД нужны сиды справочников (`ObjectType`, `WorkType`, counterparties) и строка `User` с `id` = OIDC `sub` (`createdById`). Сидов в репозитории пока нет — без них справочники вернут `[]`, а create упадёт на FK.
+Для create/update в БД нужны сиды справочников (`ObjectGroup`, `ObjectType`, `WorkType`, `DocumentType`) и строка `User` с `id` = OIDC `sub` (`createdById`). Сиды справочников заполняются командой `yarn db:seed` (см. ниже); строка `User` пока не создаётся автоматически — без неё create упадёт на FK `createdById`.
+
+## Сиды справочников
+
+```bash
+yarn db:seed   # нужен DATABASE_URL (корневой .env)
+```
+
+Заполняет `ObjectGroup`, `ObjectType`, `WorkType`, `DocumentType` по канону
+`docs/AI-PTO_Project_Documentation_v0.2.md` (п. 2): группы `residential` / `industrial`,
+типы `apartment_building` / `production_building`, 5 видов работ, 9 типов документов.
+Код — `src/prisma/seed.ts`, тесты — `src/prisma/seed.spec.ts`.
+
+Скрипт идемпотентен: повторный запуск не создаёт дубликатов, а расходящиеся поля
+(name / description / active) приводит к канону. Тип документа `unknown` сидируется
+неактивным — он нужен как FK для неклассифицированных документов и не должен
+предлагаться при загрузке.
 
 ## Проверка
 
@@ -74,16 +90,16 @@ yarn lint && yarn typecheck && yarn test
 
 ## Переменные окружения
 
-| Переменная | Где нужна | Пример / значение |
-| --- | --- | --- |
-| `DATABASE_URL` | Хост (`.env`) | `postgresql://pto:pto@localhost:5433/ai_pto` |
-| `DATABASE_URL` | Контейнер `api` (compose) | `postgresql://pto:pto@postgres:5432/ai_pto` |
-| `REDIS_URL` | Хост / API | `redis://localhost:6379` (в compose: `redis://redis:6379`) |
-| `PORT` | API | `3000` |
-| `ZITADEL_ISSUER` | API | `http://localhost:8080` |
-| `ZITADEL_CLIENT_ID` | API | Client ID приложения из Console |
-| `ZITADEL_KEY_PATH` | API | путь к JSON-ключу, напр. `./secrets/zitadel-app-key.json` |
-| `ZITADEL_REDIRECT_URI` | API | `http://localhost:3000/api/auth/callback` |
+| Переменная             | Где нужна                 | Пример / значение                                          |
+| ---------------------- | ------------------------- | ---------------------------------------------------------- |
+| `DATABASE_URL`         | Хост (`.env`)             | `postgresql://pto:pto@localhost:5433/ai_pto`               |
+| `DATABASE_URL`         | Контейнер `api` (compose) | `postgresql://pto:pto@postgres:5432/ai_pto`                |
+| `REDIS_URL`            | Хост / API                | `redis://localhost:6379` (в compose: `redis://redis:6379`) |
+| `PORT`                 | API                       | `3000`                                                     |
+| `ZITADEL_ISSUER`       | API                       | `http://localhost:8080`                                    |
+| `ZITADEL_CLIENT_ID`    | API                       | Client ID приложения из Console                            |
+| `ZITADEL_KEY_PATH`     | API                       | путь к JSON-ключу, напр. `./secrets/zitadel-app-key.json`  |
+| `ZITADEL_REDIRECT_URI` | API                       | `http://localhost:3000/api/auth/callback`                  |
 
 Почему порт Postgres **5433** на хосте: часто уже занят локальный Postgres на `5432`. Внутри сети compose сервис `postgres` слушает `5432`, с хоста ходить нужно на `localhost:5433`.
 
@@ -111,4 +127,3 @@ yarn prisma contract emit
 yarn prisma db migrate
 yarn prisma db verify
 ```
-

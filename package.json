@@ -23,6 +23,7 @@
     "prepare": "husky",
     "postinstall": "prisma skills sync || exit 0",
     "contract:emit": "prisma contract emit",
+    "db:seed": "node scripts/seed.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
