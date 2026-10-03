@@ -20,6 +20,9 @@ COPY package.json yarn.lock prisma.config.ts ./
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY src/prisma ./src/prisma
+# Для `docker compose exec api yarn user:create` (Node 24 запускает .ts нативно)
+COPY src/modules/auth/password.ts ./src/modules/auth/password.ts
+COPY scripts ./scripts
 COPY migrations ./migrations
 COPY docker/entrypoint.sh ./docker/entrypoint.sh
 RUN sed -i 's/\r$//' ./docker/entrypoint.sh && chmod +x ./docker/entrypoint.sh
