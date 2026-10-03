@@ -10,7 +10,7 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { CurrentUser } from "../../common/decorators/current-user.decorator";
+import { CurrentUser } from "../../common/decorators/current-user.decorator.js";
 import type {
   ConstructionObject,
   Counterparty,
@@ -20,10 +20,10 @@ import type {
   ObjectWrite,
   User,
   WorkType,
-} from "../../common/dto/openapi.types";
-import { Roles, RolesGuard } from "../../common/guards/roles.guard";
-import { SessionGuard } from "../auth/session.guard";
-import { ObjectsService } from "./objects.service";
+} from "../../common/dto/openapi.types.js";
+import { Roles, RolesGuard } from "../../common/guards/roles.guard.js";
+import { SessionGuard } from "../auth/session.guard.js";
+import { ObjectsService } from "./objects.service.js";
 
 @Controller("object-types")
 @UseGuards(SessionGuard)

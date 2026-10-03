@@ -1,5 +1,5 @@
 import { BadRequestException } from "@nestjs/common";
-import { parseLoginRequest } from "./login.dto";
+import { parseLoginRequest } from "./login.dto.js";
 
 describe("parseLoginRequest", () => {
   it("accepts valid input and trims email", () => {

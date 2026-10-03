@@ -1,13 +1,13 @@
 import { Module } from "@nestjs/common";
-import { AuthModule } from "../auth/auth.module";
+import { AuthModule } from "../auth/auth.module.js";
 import {
   CounterpartiesController,
   ObjectsController,
   ObjectTypesController,
   WorkTypesController,
-} from "./objects.controller";
-import { ObjectsService } from "./objects.service";
-import { RolesGuard } from "../../common/guards/roles.guard";
+} from "./objects.controller.js";
+import { ObjectsService } from "./objects.service.js";
+import { RolesGuard } from "../../common/guards/roles.guard.js";
 
 @Module({
   imports: [AuthModule],

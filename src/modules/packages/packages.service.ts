@@ -7,7 +7,7 @@ import type {
   PackageDetail,
   Report,
   ReportCreate,
-} from "../../common/dto/openapi.types";
+} from "../../common/dto/openapi.types.js";
 
 @Injectable()
 export class PackagesService {

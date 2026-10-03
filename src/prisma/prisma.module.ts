@@ -1,6 +1,6 @@
 import { Global, Module } from "@nestjs/common";
-import { db } from "./db";
-import { DB } from "./db.token";
+import { db } from "./db.js";
+import { DB } from "./db.token.js";
 
 @Global()
 @Module({

@@ -17,9 +17,9 @@ import type {
   ObjectWrite,
   User,
   WorkType,
-} from "../../common/dto/openapi.types";
-import { DB, type AppDb } from "../../prisma/db.token";
-import { canTransitionObjectStatus, todayDateString } from "./object-status";
+} from "../../common/dto/openapi.types.js";
+import { DB, type AppDb } from "../../prisma/db.token.js";
+import { canTransitionObjectStatus, todayDateString } from "./object-status.js";
 
 const ENTITY_TYPE = "construction_object";
 

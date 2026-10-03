@@ -4,8 +4,8 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from "@nestjs/common";
-import { ObjectsService } from "./objects.service";
-import type { User } from "../../common/dto/openapi.types";
+import { ObjectsService } from "./objects.service.js";
+import type { User } from "../../common/dto/openapi.types.js";
 
 function chainable(result: unknown) {
   const api: Record<string, jest.Mock> = {};

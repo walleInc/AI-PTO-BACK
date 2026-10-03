@@ -1,4 +1,4 @@
-import { canTransitionObjectStatus, todayDateString } from "./object-status";
+import { canTransitionObjectStatus, todayDateString } from "./object-status.js";
 
 describe("canTransitionObjectStatus", () => {
   it.each([

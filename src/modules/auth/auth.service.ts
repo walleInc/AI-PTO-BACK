@@ -5,12 +5,12 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
-import type { User } from "../../common/dto/openapi.types";
-import { DB, type AppDb } from "../../prisma/db.token";
-import { getAuthProvider } from "./auth.constants";
-import { OidcService } from "./oidc.service";
-import { hashPassword, verifyPassword } from "./password";
-import { SessionService, type SessionMeta } from "./session.service";
+import type { User } from "../../common/dto/openapi.types.js";
+import { DB, type AppDb } from "../../prisma/db.token.js";
+import { getAuthProvider } from "./auth.constants.js";
+import { OidcService } from "./oidc.service.js";
+import { hashPassword, verifyPassword } from "./password.js";
+import { SessionService, type SessionMeta } from "./session.service.js";
 
 const INVALID_CREDENTIALS = {
   code: "invalid_credentials",

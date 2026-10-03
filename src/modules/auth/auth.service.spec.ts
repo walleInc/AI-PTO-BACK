@@ -1,9 +1,9 @@
 import { NotFoundException, UnauthorizedException } from "@nestjs/common";
-import type { AppDb } from "../../prisma/db.token";
-import { AuthService } from "./auth.service";
-import type { OidcService } from "./oidc.service";
-import { hashPassword } from "./password";
-import type { SessionService } from "./session.service";
+import type { AppDb } from "../../prisma/db.token.js";
+import { AuthService } from "./auth.service.js";
+import type { OidcService } from "./oidc.service.js";
+import { hashPassword } from "./password.js";
+import type { SessionService } from "./session.service.js";
 
 const noDb = {} as AppDb;
 

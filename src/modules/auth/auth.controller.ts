@@ -10,15 +10,15 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import type { Request, Response } from "express";
-import type { User } from "../../common/dto/openapi.types";
+import type { User } from "../../common/dto/openapi.types.js";
 import {
   SESSION_COOKIE_NAME,
   getSessionTtlSeconds,
   sessionCookieOptions,
-} from "./auth.constants";
-import { AuthService } from "./auth.service";
-import { parseLoginRequest } from "./login.dto";
-import { SessionGuard } from "./session.guard";
+} from "./auth.constants.js";
+import { AuthService } from "./auth.service.js";
+import { parseLoginRequest } from "./login.dto.js";
+import { SessionGuard } from "./session.guard.js";
 
 function sessionMeta(req: Request) {
   return { userAgent: req.get("user-agent"), ip: req.ip };

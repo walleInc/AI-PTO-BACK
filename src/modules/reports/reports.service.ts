@@ -1,5 +1,5 @@
 import { Injectable, NotImplementedException } from "@nestjs/common";
-import type { Report } from "../../common/dto/openapi.types";
+import type { Report } from "../../common/dto/openapi.types.js";
 
 @Injectable()
 export class ReportsService {

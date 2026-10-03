@@ -1,5 +1,5 @@
 import { BadRequestException } from "@nestjs/common";
-import type { LoginRequest } from "../../common/dto/openapi.types";
+import type { LoginRequest } from "../../common/dto/openapi.types.js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

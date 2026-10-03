@@ -1,7 +1,7 @@
 import { UnauthorizedException } from "@nestjs/common";
-import { SessionGuard } from "./session.guard";
-import type { SessionService } from "./session.service";
-import { SESSION_COOKIE_NAME } from "./auth.constants";
+import { SessionGuard } from "./session.guard.js";
+import type { SessionService } from "./session.service.js";
+import { SESSION_COOKIE_NAME } from "./auth.constants.js";
 
 function mockContext(cookies: Record<string, string> | undefined) {
   const req: { cookies?: Record<string, string>; user?: unknown } = { cookies };

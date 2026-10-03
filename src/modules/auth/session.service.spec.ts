@@ -1,5 +1,5 @@
-import type { AppDb } from "../../prisma/db.token";
-import { hashSessionToken, SessionService } from "./session.service";
+import type { AppDb } from "../../prisma/db.token.js";
+import { hashSessionToken, SessionService } from "./session.service.js";
 
 const activeUser = { id: "u1", email: "a@b.c", name: "A", status: "active" };
 const activeMembership = {

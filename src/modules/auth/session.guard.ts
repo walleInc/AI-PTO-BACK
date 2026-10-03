@@ -5,9 +5,9 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import type { Request } from "express";
-import type { User } from "../../common/dto/openapi.types";
-import { SESSION_COOKIE_NAME } from "./auth.constants";
-import { SessionService } from "./session.service";
+import type { User } from "../../common/dto/openapi.types.js";
+import { SESSION_COOKIE_NAME } from "./auth.constants.js";
+import { SessionService } from "./session.service.js";
 
 @Injectable()
 export class SessionGuard implements CanActivate {

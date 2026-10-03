@@ -1,6 +1,6 @@
 import { Controller, Get, Param, ParseUUIDPipe } from "@nestjs/common";
-import type { Report } from "../../common/dto/openapi.types";
-import { ReportsService } from "./reports.service";
+import type { Report } from "../../common/dto/openapi.types.js";
+import { ReportsService } from "./reports.service.js";
 
 @Controller()
 export class ReportsController {

@@ -1,8 +1,8 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
-import type { User } from "../../common/dto/openapi.types";
-import { DB, type AppDb } from "../../prisma/db.token";
-import { getSessionTtlSeconds, OIDC_STATE_TTL_SECONDS } from "./auth.constants";
+import type { User } from "../../common/dto/openapi.types.js";
+import { DB, type AppDb } from "../../prisma/db.token.js";
+import { getSessionTtlSeconds, OIDC_STATE_TTL_SECONDS } from "./auth.constants.js";
 
 export interface OidcPendingState {
   codeVerifier: string;

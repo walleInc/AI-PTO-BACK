@@ -1,6 +1,6 @@
 import { Controller, Get, Param, ParseUUIDPipe } from "@nestjs/common";
-import type { Checklist, ObjectSummary } from "../../common/dto/openapi.types";
-import { ChecklistService } from "./checklist.service";
+import type { Checklist, ObjectSummary } from "../../common/dto/openapi.types.js";
+import { ChecklistService } from "./checklist.service.js";
 
 @Controller()
 export class ChecklistController {
