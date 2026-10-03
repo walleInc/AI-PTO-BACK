@@ -7,8 +7,8 @@ import type {
   DocumentUpdate,
   ListDocumentsQuery,
   PageMeta,
-} from "../../common/dto/openapi.types";
-import { DocumentsService } from "./documents.service";
+} from "../../common/dto/openapi.types.js";
+import { DocumentsService } from "./documents.service.js";
 
 @Controller()
 export class DocumentsController {

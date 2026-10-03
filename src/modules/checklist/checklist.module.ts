@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
-import { ChecklistService } from "./checklist.service";
-import { ChecklistController } from "./checklist.controller";
+import { ChecklistService } from "./checklist.service.js";
+import { ChecklistController } from "./checklist.controller.js";
 
 @Module({
   controllers: [ChecklistController],

@@ -1,5 +1,5 @@
 import { Injectable, NotImplementedException } from "@nestjs/common";
-import type { Checklist, ObjectSummary } from "../../common/dto/openapi.types";
+import type { Checklist, ObjectSummary } from "../../common/dto/openapi.types.js";
 
 @Injectable()
 export class ChecklistService {

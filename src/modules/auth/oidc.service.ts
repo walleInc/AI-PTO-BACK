@@ -5,7 +5,8 @@ import {
   ServiceUnavailableException,
 } from "@nestjs/common";
 import { Issuer, generators, type Client, type TokenSet } from "openid-client";
-import { loadZitadelPrivateJwks } from "./zitadel-key";
+import { getAuthProvider } from "./auth.constants.js";
+import { loadZitadelPrivateJwks } from "./zitadel-key.js";
 
 @Injectable()
 export class OidcService implements OnModuleInit {
@@ -13,6 +14,9 @@ export class OidcService implements OnModuleInit {
   private redirectUri = "";
 
   async onModuleInit(): Promise<void> {
+    if (getAuthProvider() !== "zitadel") {
+      return;
+    }
     // Lazy-friendly: discovery can fail if ZITADEL is down at boot; retry on first use.
     try {
       await this.ensureClient();

@@ -84,6 +84,10 @@
       "model": "ObjectWorkType",
       "namespace": "public"
     },
+    "oidcState": {
+      "model": "OidcState",
+      "namespace": "public"
+    },
     "organization": {
       "model": "Organization",
       "namespace": "public"
@@ -110,6 +114,10 @@
     },
     "ruleVersion": {
       "model": "RuleVersion",
+      "namespace": "public"
+    },
+    "session": {
+      "model": "Session",
       "namespace": "public"
     },
     "sourceRef": {
@@ -557,8 +565,12 @@
                 "cardinality": "N:1",
                 "nullable": true,
                 "on": {
-                  "localFields": ["actorId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "actorId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "User",
@@ -569,8 +581,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["organizationId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "organizationId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "Organization",
@@ -655,8 +671,12 @@
               "items": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["checklistId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "checklistId"
+                  ]
                 },
                 "to": {
                   "model": "ChecklistItem",
@@ -667,8 +687,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["objectId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "objectId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "ConstructionObject",
@@ -679,8 +703,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["packageId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "packageId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "Package",
@@ -766,8 +794,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["checklistId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "checklistId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "Checklist",
@@ -777,8 +809,12 @@
               "documents": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["checklistItemId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "checklistItemId"
+                  ]
                 },
                 "to": {
                   "model": "ChecklistItemDocument",
@@ -789,8 +825,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["requirementItemId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "requirementItemId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "RequirementItem",
@@ -845,8 +885,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["checklistItemId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "checklistItemId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "ChecklistItem",
@@ -857,8 +901,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["documentId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "documentId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "Document",
@@ -1018,8 +1066,12 @@
               "bindings": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["objectId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "objectId"
+                  ]
                 },
                 "to": {
                   "model": "ObjectRequirementBinding",
@@ -1029,8 +1081,12 @@
               "checklists": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["objectId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "objectId"
+                  ]
                 },
                 "to": {
                   "model": "Checklist",
@@ -1041,8 +1097,12 @@
                 "cardinality": "N:1",
                 "nullable": true,
                 "on": {
-                  "localFields": ["contractorOrganizationId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "contractorOrganizationId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "Organization",
@@ -1053,8 +1113,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["createdById"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "createdById"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "User",
@@ -1065,8 +1129,12 @@
                 "cardinality": "N:1",
                 "nullable": true,
                 "on": {
-                  "localFields": ["customerOrganizationId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "customerOrganizationId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "Organization",
@@ -1077,8 +1145,12 @@
                 "cardinality": "N:1",
                 "nullable": true,
                 "on": {
-                  "localFields": ["customerProfileId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "customerProfileId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "CustomerRequirementProfile",
@@ -1088,8 +1160,12 @@
               "documents": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["objectId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "objectId"
+                  ]
                 },
                 "to": {
                   "model": "Document",
@@ -1099,8 +1175,12 @@
               "findings": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["objectId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "objectId"
+                  ]
                 },
                 "to": {
                   "model": "Finding",
@@ -1111,8 +1191,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["objectTypeId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "objectTypeId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "ObjectType",
@@ -1123,8 +1207,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["organizationId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "organizationId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "Organization",
@@ -1134,8 +1222,12 @@
               "packages": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["objectId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "objectId"
+                  ]
                 },
                 "to": {
                   "model": "Package",
@@ -1145,8 +1237,12 @@
               "reports": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["objectId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "objectId"
+                  ]
                 },
                 "to": {
                   "model": "Report",
@@ -1156,8 +1252,12 @@
               "workTypes": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["objectId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "objectId"
+                  ]
                 },
                 "to": {
                   "model": "ObjectWorkType",
@@ -1274,8 +1374,12 @@
               "objects": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["customerProfileId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "customerProfileId"
+                  ]
                 },
                 "to": {
                   "model": "ConstructionObject",
@@ -1286,8 +1390,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["organizationId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "organizationId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "Organization",
@@ -1297,8 +1405,12 @@
               "requirementSets": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["customerProfileId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "customerProfileId"
+                  ]
                 },
                 "to": {
                   "model": "RequirementSet",
@@ -1422,8 +1534,12 @@
               "checklistLinks": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["documentId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "documentId"
+                  ]
                 },
                 "to": {
                   "model": "ChecklistItemDocument",
@@ -1434,8 +1550,12 @@
                 "cardinality": "N:1",
                 "nullable": true,
                 "on": {
-                  "localFields": ["documentTypeId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "documentTypeId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "DocumentType",
@@ -1445,8 +1565,12 @@
               "extractedFields": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["documentId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "documentId"
+                  ]
                 },
                 "to": {
                   "model": "ExtractedField",
@@ -1457,8 +1581,12 @@
                 "cardinality": "N:1",
                 "nullable": true,
                 "on": {
-                  "localFields": ["fileAssetId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "fileAssetId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "FileAsset",
@@ -1468,8 +1596,12 @@
               "findings": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["documentId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "documentId"
+                  ]
                 },
                 "to": {
                   "model": "Finding",
@@ -1480,8 +1612,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["objectId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "objectId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "ConstructionObject",
@@ -1492,8 +1628,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["packageId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "packageId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "Package",
@@ -1503,8 +1643,12 @@
               "sourceRefs": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["documentId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "documentId"
+                  ]
                 },
                 "to": {
                   "model": "SourceRef",
@@ -1514,8 +1658,12 @@
               "stageRuns": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["documentId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "documentId"
+                  ]
                 },
                 "to": {
                   "model": "DocumentStageRun",
@@ -1667,8 +1815,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["documentId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "documentId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "Document",
@@ -1761,8 +1913,12 @@
               "documents": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["documentTypeId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "documentTypeId"
+                  ]
                 },
                 "to": {
                   "model": "Document",
@@ -1772,8 +1928,12 @@
               "requirementItems": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["documentTypeId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "documentTypeId"
+                  ]
                 },
                 "to": {
                   "model": "RequirementItem",
@@ -1899,8 +2059,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["documentId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "documentId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "Document",
@@ -1911,8 +2075,12 @@
                 "cardinality": "N:1",
                 "nullable": true,
                 "on": {
-                  "localFields": ["sourceRefId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "sourceRefId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "SourceRef",
@@ -2057,8 +2225,12 @@
               "documents": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["fileAssetId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "fileAssetId"
+                  ]
                 },
                 "to": {
                   "model": "Document",
@@ -2069,8 +2241,12 @@
                 "cardinality": "N:1",
                 "nullable": true,
                 "on": {
-                  "localFields": ["duplicateOfId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "duplicateOfId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "FileAsset",
@@ -2080,8 +2256,12 @@
               "duplicates": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["duplicateOfId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "duplicateOfId"
+                  ]
                 },
                 "to": {
                   "model": "FileAsset",
@@ -2092,8 +2272,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["organizationId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "organizationId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "Organization",
@@ -2294,8 +2478,12 @@
                 "cardinality": "N:1",
                 "nullable": true,
                 "on": {
-                  "localFields": ["decidedById"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "decidedById"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "User",
@@ -2306,8 +2494,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["documentId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "documentId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "Document",
@@ -2317,8 +2509,12 @@
               "history": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["findingId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "findingId"
+                  ]
                 },
                 "to": {
                   "model": "FindingHistory",
@@ -2329,8 +2525,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["objectId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "objectId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "ConstructionObject",
@@ -2341,8 +2541,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["packageId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "packageId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "Package",
@@ -2353,8 +2557,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["ruleVersionId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "ruleVersionId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "RuleVersion",
@@ -2364,8 +2572,12 @@
               "sources": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["findingId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "findingId"
+                  ]
                 },
                 "to": {
                   "model": "FindingSource",
@@ -2503,8 +2715,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["findingId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "findingId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "Finding",
@@ -2515,8 +2731,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["userId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "User",
@@ -2574,8 +2794,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["findingId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "findingId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "Finding",
@@ -2586,8 +2810,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["sourceRefId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "sourceRefId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "SourceRef",
@@ -2670,8 +2898,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["organizationId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "organizationId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "Organization",
@@ -2682,8 +2914,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["userId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "User",
@@ -2800,8 +3036,12 @@
               "ruleVersions": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["normativeSourceId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "normativeSourceId"
+                  ]
                 },
                 "to": {
                   "model": "RuleVersion",
@@ -2891,8 +3131,12 @@
               "types": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["groupId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "groupId"
+                  ]
                 },
                 "to": {
                   "model": "ObjectType",
@@ -2965,8 +3209,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["objectId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "objectId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "ConstructionObject",
@@ -2977,8 +3225,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["requirementSetId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "requirementSetId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "RequirementSet",
@@ -2989,8 +3241,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["workTypeId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "workTypeId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "WorkType",
@@ -3070,8 +3326,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["groupId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "groupId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "ObjectGroup",
@@ -3081,8 +3341,12 @@
               "objects": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["objectTypeId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "objectTypeId"
+                  ]
                 },
                 "to": {
                   "model": "ConstructionObject",
@@ -3092,8 +3356,12 @@
               "requirementSets": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["objectTypeId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "objectTypeId"
+                  ]
                 },
                 "to": {
                   "model": "RequirementSet",
@@ -3162,8 +3430,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["objectId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "objectId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "ConstructionObject",
@@ -3174,8 +3446,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["workTypeId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "workTypeId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "WorkType",
@@ -3200,6 +3476,57 @@
               },
               "namespaceId": "public",
               "table": "objectWorkType"
+            }
+          },
+          "OidcState": {
+            "fields": {
+              "codeVerifier": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "expiresAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "state": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "codeVerifier": {
+                  "column": "codeVerifier"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "expiresAt": {
+                  "column": "expiresAt"
+                },
+                "state": {
+                  "column": "state"
+                }
+              },
+              "namespaceId": "public",
+              "table": "oidcState"
             }
           },
           "Organization": {
@@ -3270,8 +3597,12 @@
               "auditLogs": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["organizationId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "organizationId"
+                  ]
                 },
                 "to": {
                   "model": "AuditLog",
@@ -3281,8 +3612,12 @@
               "contractorObjects": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["contractorOrganizationId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "contractorOrganizationId"
+                  ]
                 },
                 "to": {
                   "model": "ConstructionObject",
@@ -3292,8 +3627,12 @@
               "customerObjects": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["customerOrganizationId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "customerOrganizationId"
+                  ]
                 },
                 "to": {
                   "model": "ConstructionObject",
@@ -3303,8 +3642,12 @@
               "fileAssets": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["organizationId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "organizationId"
+                  ]
                 },
                 "to": {
                   "model": "FileAsset",
@@ -3314,8 +3657,12 @@
               "memberships": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["organizationId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "organizationId"
+                  ]
                 },
                 "to": {
                   "model": "Membership",
@@ -3325,8 +3672,12 @@
               "requirementProfiles": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["organizationId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "organizationId"
+                  ]
                 },
                 "to": {
                   "model": "CustomerRequirementProfile",
@@ -3336,8 +3687,12 @@
               "workspaceObjects": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["organizationId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "organizationId"
+                  ]
                 },
                 "to": {
                   "model": "ConstructionObject",
@@ -3454,8 +3809,12 @@
                 "cardinality": "1:1",
                 "nullable": true,
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["packageId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "packageId"
+                  ]
                 },
                 "to": {
                   "model": "Checklist",
@@ -3466,8 +3825,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["createdById"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "createdById"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "User",
@@ -3477,8 +3840,12 @@
               "documents": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["packageId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "packageId"
+                  ]
                 },
                 "to": {
                   "model": "Document",
@@ -3488,8 +3855,12 @@
               "findings": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["packageId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "packageId"
+                  ]
                 },
                 "to": {
                   "model": "Finding",
@@ -3500,8 +3871,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["objectId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "objectId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "ConstructionObject",
@@ -3511,8 +3886,12 @@
               "reports": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["packageId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "packageId"
+                  ]
                 },
                 "to": {
                   "model": "Report",
@@ -3665,8 +4044,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["createdById"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "createdById"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "User",
@@ -3677,8 +4060,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["objectId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "objectId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "ConstructionObject",
@@ -3689,8 +4076,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["packageId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "packageId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "Package",
@@ -3827,8 +4218,12 @@
               "checklistItems": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["requirementItemId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "requirementItemId"
+                  ]
                 },
                 "to": {
                   "model": "ChecklistItem",
@@ -3839,8 +4234,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["documentTypeId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "documentTypeId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "DocumentType",
@@ -3851,8 +4250,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["requirementSetId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "requirementSetId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "RequirementSet",
@@ -3863,8 +4266,12 @@
                 "cardinality": "N:1",
                 "nullable": true,
                 "on": {
-                  "localFields": ["ruleId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "ruleId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "Rule",
@@ -3971,8 +4378,12 @@
               "bindings": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["requirementSetId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "requirementSetId"
+                  ]
                 },
                 "to": {
                   "model": "ObjectRequirementBinding",
@@ -3983,8 +4394,12 @@
                 "cardinality": "N:1",
                 "nullable": true,
                 "on": {
-                  "localFields": ["customerProfileId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "customerProfileId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "CustomerRequirementProfile",
@@ -3994,8 +4409,12 @@
               "items": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["requirementSetId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "requirementSetId"
+                  ]
                 },
                 "to": {
                   "model": "RequirementItem",
@@ -4006,8 +4425,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["objectTypeId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "objectTypeId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "ObjectType",
@@ -4018,8 +4441,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["workTypeId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "workTypeId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "WorkType",
@@ -4090,8 +4517,12 @@
               "requirementItems": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["ruleId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "ruleId"
+                  ]
                 },
                 "to": {
                   "model": "RequirementItem",
@@ -4101,8 +4532,12 @@
               "versions": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["ruleId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "ruleId"
+                  ]
                 },
                 "to": {
                   "model": "RuleVersion",
@@ -4184,8 +4619,12 @@
               "findings": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["ruleVersionId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "ruleVersionId"
+                  ]
                 },
                 "to": {
                   "model": "Finding",
@@ -4196,8 +4635,12 @@
                 "cardinality": "N:1",
                 "nullable": true,
                 "on": {
-                  "localFields": ["normativeSourceId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "normativeSourceId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "NormativeSource",
@@ -4208,8 +4651,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["ruleId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "ruleId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "Rule",
@@ -4240,6 +4687,124 @@
               },
               "namespaceId": "public",
               "table": "ruleVersion"
+            }
+          },
+          "Session": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "expiresAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "ip": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "lastSeenAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "revokedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "tokenHash": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "userAgent": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "user": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "userId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "expiresAt": {
+                  "column": "expiresAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "ip": {
+                  "column": "ip"
+                },
+                "lastSeenAt": {
+                  "column": "lastSeenAt"
+                },
+                "revokedAt": {
+                  "column": "revokedAt"
+                },
+                "tokenHash": {
+                  "column": "tokenHash"
+                },
+                "userAgent": {
+                  "column": "userAgent"
+                },
+                "userId": {
+                  "column": "userId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "session"
             }
           },
           "SourceRef": {
@@ -4326,8 +4891,12 @@
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
-                  "localFields": ["documentId"],
-                  "targetFields": ["id"]
+                  "localFields": [
+                    "documentId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
                 },
                 "to": {
                   "model": "Document",
@@ -4337,8 +4906,12 @@
               "extractedFields": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["sourceRefId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "sourceRefId"
+                  ]
                 },
                 "to": {
                   "model": "ExtractedField",
@@ -4348,8 +4921,12 @@
               "findingLinks": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["sourceRefId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "sourceRefId"
+                  ]
                 },
                 "to": {
                   "model": "FindingSource",
@@ -4463,8 +5040,12 @@
               "auditLogs": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["actorId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "actorId"
+                  ]
                 },
                 "to": {
                   "model": "AuditLog",
@@ -4474,8 +5055,12 @@
               "createdObjects": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["createdById"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "createdById"
+                  ]
                 },
                 "to": {
                   "model": "ConstructionObject",
@@ -4485,8 +5070,12 @@
               "createdPackages": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["createdById"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "createdById"
+                  ]
                 },
                 "to": {
                   "model": "Package",
@@ -4496,8 +5085,12 @@
               "createdReports": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["createdById"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "createdById"
+                  ]
                 },
                 "to": {
                   "model": "Report",
@@ -4507,8 +5100,12 @@
               "findingDecisions": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["decidedById"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "decidedById"
+                  ]
                 },
                 "to": {
                   "model": "Finding",
@@ -4518,8 +5115,12 @@
               "findingHistory": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["userId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "userId"
+                  ]
                 },
                 "to": {
                   "model": "FindingHistory",
@@ -4529,11 +5130,30 @@
               "memberships": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["userId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "userId"
+                  ]
                 },
                 "to": {
                   "model": "Membership",
+                  "namespace": "public"
+                }
+              },
+              "sessions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "userId"
+                  ]
+                },
+                "to": {
+                  "model": "Session",
                   "namespace": "public"
                 }
               }
@@ -4611,8 +5231,12 @@
               "bindings": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["workTypeId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "workTypeId"
+                  ]
                 },
                 "to": {
                   "model": "ObjectRequirementBinding",
@@ -4622,8 +5246,12 @@
               "objectLinks": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["workTypeId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "workTypeId"
+                  ]
                 },
                 "to": {
                   "model": "ObjectWorkType",
@@ -4633,8 +5261,12 @@
               "requirementSets": {
                 "cardinality": "1:N",
                 "on": {
-                  "localFields": ["id"],
-                  "targetFields": ["workTypeId"]
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "workTypeId"
+                  ]
                 },
                 "to": {
                   "model": "RequirementSet",
@@ -4723,24 +5355,32 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["organizationId"],
+                    "columns": [
+                      "organizationId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "auditLog"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "organization"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["actorId"],
+                    "columns": [
+                      "actorId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "auditLog"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "user"
                   }
@@ -4748,32 +5388,44 @@
               ],
               "indexes": [
                 {
-                  "columns": ["actorId"],
+                  "columns": [
+                    "actorId"
+                  ],
                   "name": "auditLog_actorId_idx_a58f6b4b",
                   "prefix": "auditLog_actorId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["entityType", "entityId"],
+                  "columns": [
+                    "entityType",
+                    "entityId"
+                  ],
                   "name": "auditLog_entityType_entityId_idx_ea0fa809",
                   "prefix": "auditLog_entityType_entityId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["organizationId", "createdAt"],
+                  "columns": [
+                    "organizationId",
+                    "createdAt"
+                  ],
                   "name": "auditLog_organizationId_createdAt_idx_c52d1cc3",
                   "prefix": "auditLog_organizationId_createdAt_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["organizationId"],
+                  "columns": [
+                    "organizationId"
+                  ],
                   "name": "auditLog_organizationId_idx_2e17ef41",
                   "prefix": "auditLog_organizationId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": []
             },
@@ -4820,24 +5472,32 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["objectId"],
+                    "columns": [
+                      "objectId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "checklist"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "constructionObject"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["packageId"],
+                    "columns": [
+                      "packageId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "checklist"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "package"
                   }
@@ -4845,18 +5505,24 @@
               ],
               "indexes": [
                 {
-                  "columns": ["objectId"],
+                  "columns": [
+                    "objectId"
+                  ],
                   "name": "checklist_objectId_idx_08ca88de",
                   "prefix": "checklist_objectId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": [
                 {
-                  "columns": ["packageId"]
+                  "columns": [
+                    "packageId"
+                  ]
                 }
               ]
             },
@@ -4909,24 +5575,32 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["checklistId"],
+                    "columns": [
+                      "checklistId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "checklistItem"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "checklist"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["requirementItemId"],
+                    "columns": [
+                      "requirementItemId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "checklistItem"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "requirementItem"
                   }
@@ -4934,24 +5608,33 @@
               ],
               "indexes": [
                 {
-                  "columns": ["checklistId"],
+                  "columns": [
+                    "checklistId"
+                  ],
                   "name": "checklistItem_checklistId_idx_2aea5937",
                   "prefix": "checklistItem_checklistId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["requirementItemId"],
+                  "columns": [
+                    "requirementItemId"
+                  ],
                   "name": "checklistItem_requirementItemId_idx_2cf15bee",
                   "prefix": "checklistItem_requirementItemId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": [
                 {
-                  "columns": ["checklistId", "requirementItemId"]
+                  "columns": [
+                    "checklistId",
+                    "requirementItemId"
+                  ]
                 }
               ]
             },
@@ -4971,24 +5654,32 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["checklistItemId"],
+                    "columns": [
+                      "checklistItemId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "checklistItemDocument"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "checklistItem"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["documentId"],
+                    "columns": [
+                      "documentId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "checklistItemDocument"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "document"
                   }
@@ -4996,20 +5687,27 @@
               ],
               "indexes": [
                 {
-                  "columns": ["checklistItemId"],
+                  "columns": [
+                    "checklistItemId"
+                  ],
                   "name": "checklistItemDocument_checklistItemId_idx_93aa93e9",
                   "prefix": "checklistItemDocument_checklistItemId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["documentId"],
+                  "columns": [
+                    "documentId"
+                  ],
                   "name": "checklistItemDocument_documentId_idx_825ef746",
                   "prefix": "checklistItemDocument_documentId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["checklistItemId", "documentId"]
+                "columns": [
+                  "checklistItemId",
+                  "documentId"
+                ]
               },
               "uniques": []
             },
@@ -5130,72 +5828,96 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["organizationId"],
+                    "columns": [
+                      "organizationId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "constructionObject"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "organization"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["objectTypeId"],
+                    "columns": [
+                      "objectTypeId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "constructionObject"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "objectType"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["customerOrganizationId"],
+                    "columns": [
+                      "customerOrganizationId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "constructionObject"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "organization"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["contractorOrganizationId"],
+                    "columns": [
+                      "contractorOrganizationId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "constructionObject"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "organization"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["customerProfileId"],
+                    "columns": [
+                      "customerProfileId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "constructionObject"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "customerRequirementProfile"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["createdById"],
+                    "columns": [
+                      "createdById"
+                    ],
                     "namespaceId": "public",
                     "tableName": "constructionObject"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "user"
                   }
@@ -5203,48 +5925,65 @@
               ],
               "indexes": [
                 {
-                  "columns": ["contractorOrganizationId"],
+                  "columns": [
+                    "contractorOrganizationId"
+                  ],
                   "name": "constructionObject_contractorOrganizationId_idx_5ee37fd6",
                   "prefix": "constructionObject_contractorOrganizationId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["createdById"],
+                  "columns": [
+                    "createdById"
+                  ],
                   "name": "constructionObject_createdById_idx_8bf640ed",
                   "prefix": "constructionObject_createdById_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["customerOrganizationId"],
+                  "columns": [
+                    "customerOrganizationId"
+                  ],
                   "name": "constructionObject_customerOrganizationId_idx_27963815",
                   "prefix": "constructionObject_customerOrganizationId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["customerProfileId"],
+                  "columns": [
+                    "customerProfileId"
+                  ],
                   "name": "constructionObject_customerProfileId_idx_dd39e3f1",
                   "prefix": "constructionObject_customerProfileId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["objectTypeId"],
+                  "columns": [
+                    "objectTypeId"
+                  ],
                   "name": "constructionObject_objectTypeId_idx_a6eceb0b",
                   "prefix": "constructionObject_objectTypeId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["organizationId"],
+                  "columns": [
+                    "organizationId"
+                  ],
                   "name": "constructionObject_organizationId_idx_2e17ef41",
                   "prefix": "constructionObject_organizationId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": [
                 {
-                  "columns": ["organizationId", "code"]
+                  "columns": [
+                    "organizationId",
+                    "code"
+                  ]
                 }
               ]
             },
@@ -5296,12 +6035,16 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["organizationId"],
+                    "columns": [
+                      "organizationId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "customerRequirementProfile"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "organization"
                   }
@@ -5309,14 +6052,18 @@
               ],
               "indexes": [
                 {
-                  "columns": ["organizationId"],
+                  "columns": [
+                    "organizationId"
+                  ],
                   "name": "customerRequirementProfile_organizationId_idx_2e17ef41",
                   "prefix": "customerRequirementProfile_organizationId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": []
             },
@@ -5410,48 +6157,64 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["objectId"],
+                    "columns": [
+                      "objectId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "document"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "constructionObject"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["packageId"],
+                    "columns": [
+                      "packageId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "document"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "package"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["fileAssetId"],
+                    "columns": [
+                      "fileAssetId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "document"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "fileAsset"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["documentTypeId"],
+                    "columns": [
+                      "documentTypeId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "document"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "documentType"
                   }
@@ -5459,32 +6222,42 @@
               ],
               "indexes": [
                 {
-                  "columns": ["documentTypeId"],
+                  "columns": [
+                    "documentTypeId"
+                  ],
                   "name": "document_documentTypeId_idx_878907da",
                   "prefix": "document_documentTypeId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["fileAssetId"],
+                  "columns": [
+                    "fileAssetId"
+                  ],
                   "name": "document_fileAssetId_idx_84361fdc",
                   "prefix": "document_fileAssetId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["objectId"],
+                  "columns": [
+                    "objectId"
+                  ],
                   "name": "document_objectId_idx_08ca88de",
                   "prefix": "document_objectId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["packageId"],
+                  "columns": [
+                    "packageId"
+                  ],
                   "name": "document_packageId_idx_51f866f4",
                   "prefix": "document_packageId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": []
             },
@@ -5586,12 +6359,16 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["documentId"],
+                    "columns": [
+                      "documentId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "documentStageRun"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "document"
                   }
@@ -5599,20 +6376,27 @@
               ],
               "indexes": [
                 {
-                  "columns": ["documentId"],
+                  "columns": [
+                    "documentId"
+                  ],
                   "name": "documentStageRun_documentId_idx_825ef746",
                   "prefix": "documentStageRun_documentId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["documentId", "stage"],
+                  "columns": [
+                    "documentId",
+                    "stage"
+                  ],
                   "name": "documentStageRun_documentId_stage_idx_343658b5",
                   "prefix": "documentStageRun_documentId_stage_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": []
             },
@@ -5651,11 +6435,15 @@
               "foreignKeys": [],
               "indexes": [],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": [
                 {
-                  "columns": ["code"]
+                  "columns": [
+                    "code"
+                  ]
                 }
               ]
             },
@@ -5737,24 +6525,32 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["documentId"],
+                    "columns": [
+                      "documentId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "extractedField"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "document"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["sourceRefId"],
+                    "columns": [
+                      "sourceRefId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "extractedField"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "sourceRef"
                   }
@@ -5762,26 +6558,35 @@
               ],
               "indexes": [
                 {
-                  "columns": ["documentId"],
+                  "columns": [
+                    "documentId"
+                  ],
                   "name": "extractedField_documentId_idx_825ef746",
                   "prefix": "extractedField_documentId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["documentId", "key"],
+                  "columns": [
+                    "documentId",
+                    "key"
+                  ],
                   "name": "extractedField_documentId_key_idx_bae03aff",
                   "prefix": "extractedField_documentId_key_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["sourceRefId"],
+                  "columns": [
+                    "sourceRefId"
+                  ],
                   "name": "extractedField_sourceRefId_idx_f8db000c",
                   "prefix": "extractedField_sourceRefId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": []
             },
@@ -5866,24 +6671,32 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["organizationId"],
+                    "columns": [
+                      "organizationId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "fileAsset"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "organization"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["duplicateOfId"],
+                    "columns": [
+                      "duplicateOfId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "fileAsset"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "fileAsset"
                   }
@@ -5891,27 +6704,39 @@
               ],
               "indexes": [
                 {
-                  "columns": ["duplicateOfId"],
+                  "columns": [
+                    "duplicateOfId"
+                  ],
                   "name": "fileAsset_duplicateOfId_idx_28ac86a0",
                   "prefix": "fileAsset_duplicateOfId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["organizationId"],
+                  "columns": [
+                    "organizationId"
+                  ],
                   "name": "fileAsset_organizationId_idx_2e17ef41",
                   "prefix": "fileAsset_organizationId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": [
                 {
-                  "columns": ["organizationId", "sha256"]
+                  "columns": [
+                    "organizationId",
+                    "sha256"
+                  ]
                 },
                 {
-                  "columns": ["bucket", "objectKey"]
+                  "columns": [
+                    "bucket",
+                    "objectKey"
+                  ]
                 }
               ]
             },
@@ -6047,60 +6872,80 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["objectId"],
+                    "columns": [
+                      "objectId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "finding"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "constructionObject"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["documentId"],
+                    "columns": [
+                      "documentId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "finding"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "document"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["packageId"],
+                    "columns": [
+                      "packageId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "finding"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "package"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["ruleVersionId"],
+                    "columns": [
+                      "ruleVersionId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "finding"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "ruleVersion"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["decidedById"],
+                    "columns": [
+                      "decidedById"
+                    ],
                     "namespaceId": "public",
                     "tableName": "finding"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "user"
                   }
@@ -6108,38 +6953,50 @@
               ],
               "indexes": [
                 {
-                  "columns": ["decidedById"],
+                  "columns": [
+                    "decidedById"
+                  ],
                   "name": "finding_decidedById_idx_8194d55f",
                   "prefix": "finding_decidedById_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["documentId"],
+                  "columns": [
+                    "documentId"
+                  ],
                   "name": "finding_documentId_idx_825ef746",
                   "prefix": "finding_documentId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["objectId"],
+                  "columns": [
+                    "objectId"
+                  ],
                   "name": "finding_objectId_idx_08ca88de",
                   "prefix": "finding_objectId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["packageId"],
+                  "columns": [
+                    "packageId"
+                  ],
                   "name": "finding_packageId_idx_51f866f4",
                   "prefix": "finding_packageId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["ruleVersionId"],
+                  "columns": [
+                    "ruleVersionId"
+                  ],
                   "name": "finding_ruleVersionId_idx_7051a033",
                   "prefix": "finding_ruleVersionId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": []
             },
@@ -6212,24 +7069,32 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["findingId"],
+                    "columns": [
+                      "findingId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "findingHistory"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "finding"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["userId"],
+                    "columns": [
+                      "userId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "findingHistory"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "user"
                   }
@@ -6237,20 +7102,26 @@
               ],
               "indexes": [
                 {
-                  "columns": ["findingId"],
+                  "columns": [
+                    "findingId"
+                  ],
                   "name": "findingHistory_findingId_idx_813b79f2",
                   "prefix": "findingHistory_findingId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["userId"],
+                  "columns": [
+                    "userId"
+                  ],
                   "name": "findingHistory_userId_idx_a489d58a",
                   "prefix": "findingHistory_userId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": []
             },
@@ -6270,24 +7141,32 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["findingId"],
+                    "columns": [
+                      "findingId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "findingSource"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "finding"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["sourceRefId"],
+                    "columns": [
+                      "sourceRefId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "findingSource"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "sourceRef"
                   }
@@ -6295,20 +7174,27 @@
               ],
               "indexes": [
                 {
-                  "columns": ["findingId"],
+                  "columns": [
+                    "findingId"
+                  ],
                   "name": "findingSource_findingId_idx_813b79f2",
                   "prefix": "findingSource_findingId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["sourceRefId"],
+                  "columns": [
+                    "sourceRefId"
+                  ],
                   "name": "findingSource_sourceRefId_idx_f8db000c",
                   "prefix": "findingSource_sourceRefId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["findingId", "sourceRefId"]
+                "columns": [
+                  "findingId",
+                  "sourceRefId"
+                ]
               },
               "uniques": []
             },
@@ -6380,24 +7266,32 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["organizationId"],
+                    "columns": [
+                      "organizationId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "membership"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "organization"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["userId"],
+                    "columns": [
+                      "userId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "membership"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "user"
                   }
@@ -6405,24 +7299,33 @@
               ],
               "indexes": [
                 {
-                  "columns": ["organizationId"],
+                  "columns": [
+                    "organizationId"
+                  ],
                   "name": "membership_organizationId_idx_2e17ef41",
                   "prefix": "membership_organizationId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["userId"],
+                  "columns": [
+                    "userId"
+                  ],
                   "name": "membership_userId_idx_a489d58a",
                   "prefix": "membership_userId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": [
                 {
-                  "columns": ["organizationId", "userId"]
+                  "columns": [
+                    "organizationId",
+                    "userId"
+                  ]
                 }
               ]
             },
@@ -6491,11 +7394,16 @@
               "foreignKeys": [],
               "indexes": [],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": [
                 {
-                  "columns": ["code", "version"]
+                  "columns": [
+                    "code",
+                    "version"
+                  ]
                 }
               ]
             },
@@ -6534,11 +7442,15 @@
               "foreignKeys": [],
               "indexes": [],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": [
                 {
-                  "columns": ["code"]
+                  "columns": [
+                    "code"
+                  ]
                 }
               ]
             },
@@ -6577,36 +7489,48 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["objectId"],
+                    "columns": [
+                      "objectId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "objectRequirementBinding"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "constructionObject"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["workTypeId"],
+                    "columns": [
+                      "workTypeId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "objectRequirementBinding"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "workType"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["requirementSetId"],
+                    "columns": [
+                      "requirementSetId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "objectRequirementBinding"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "requirementSet"
                   }
@@ -6614,30 +7538,41 @@
               ],
               "indexes": [
                 {
-                  "columns": ["objectId"],
+                  "columns": [
+                    "objectId"
+                  ],
                   "name": "objectRequirementBinding_objectId_idx_08ca88de",
                   "prefix": "objectRequirementBinding_objectId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["requirementSetId"],
+                  "columns": [
+                    "requirementSetId"
+                  ],
                   "name": "objectRequirementBinding_requirementSetId_idx_648eca97",
                   "prefix": "objectRequirementBinding_requirementSetId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["workTypeId"],
+                  "columns": [
+                    "workTypeId"
+                  ],
                   "name": "objectRequirementBinding_workTypeId_idx_2e2586e9",
                   "prefix": "objectRequirementBinding_workTypeId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": [
                 {
-                  "columns": ["objectId", "workTypeId"]
+                  "columns": [
+                    "objectId",
+                    "workTypeId"
+                  ]
                 }
               ]
             },
@@ -6681,12 +7616,16 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["groupId"],
+                    "columns": [
+                      "groupId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "objectType"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "objectGroup"
                   }
@@ -6694,18 +7633,24 @@
               ],
               "indexes": [
                 {
-                  "columns": ["groupId"],
+                  "columns": [
+                    "groupId"
+                  ],
                   "name": "objectType_groupId_idx_e2fb5578",
                   "prefix": "objectType_groupId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": [
                 {
-                  "columns": ["code"]
+                  "columns": [
+                    "code"
+                  ]
                 }
               ]
             },
@@ -6739,24 +7684,32 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["objectId"],
+                    "columns": [
+                      "objectId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "objectWorkType"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "constructionObject"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["workTypeId"],
+                    "columns": [
+                      "workTypeId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "objectWorkType"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "workType"
                   }
@@ -6764,26 +7717,80 @@
               ],
               "indexes": [
                 {
-                  "columns": ["objectId"],
+                  "columns": [
+                    "objectId"
+                  ],
                   "name": "objectWorkType_objectId_idx_08ca88de",
                   "prefix": "objectWorkType_objectId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["workTypeId"],
+                  "columns": [
+                    "workTypeId"
+                  ],
                   "name": "objectWorkType_workTypeId_idx_2e2586e9",
                   "prefix": "objectWorkType_workTypeId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": [
                 {
-                  "columns": ["objectId", "workTypeId"]
+                  "columns": [
+                    "objectId",
+                    "workTypeId"
+                  ]
                 }
               ]
+            },
+            "oidcState": {
+              "columns": {
+                "codeVerifier": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "expiresAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "state": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "expiresAt"
+                  ],
+                  "name": "oidcState_expiresAt_idx_6b6b8c10",
+                  "prefix": "oidcState_expiresAt_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "state"
+                ]
+              },
+              "uniques": []
             },
             "organization": {
               "checks": [
@@ -6858,11 +7865,15 @@
               "foreignKeys": [],
               "indexes": [],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": [
                 {
-                  "columns": ["slug"]
+                  "columns": [
+                    "slug"
+                  ]
                 }
               ]
             },
@@ -6950,24 +7961,32 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["objectId"],
+                    "columns": [
+                      "objectId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "package"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "constructionObject"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["createdById"],
+                    "columns": [
+                      "createdById"
+                    ],
                     "namespaceId": "public",
                     "tableName": "package"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "user"
                   }
@@ -6975,24 +7994,33 @@
               ],
               "indexes": [
                 {
-                  "columns": ["createdById"],
+                  "columns": [
+                    "createdById"
+                  ],
                   "name": "package_createdById_idx_8bf640ed",
                   "prefix": "package_createdById_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["objectId"],
+                  "columns": [
+                    "objectId"
+                  ],
                   "name": "package_objectId_idx_08ca88de",
                   "prefix": "package_objectId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": [
                 {
-                  "columns": ["objectId", "version"]
+                  "columns": [
+                    "objectId",
+                    "version"
+                  ]
                 }
               ]
             },
@@ -7107,36 +8135,48 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["objectId"],
+                    "columns": [
+                      "objectId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "report"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "constructionObject"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["packageId"],
+                    "columns": [
+                      "packageId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "report"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "package"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["createdById"],
+                    "columns": [
+                      "createdById"
+                    ],
                     "namespaceId": "public",
                     "tableName": "report"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "user"
                   }
@@ -7144,30 +8184,41 @@
               ],
               "indexes": [
                 {
-                  "columns": ["createdById"],
+                  "columns": [
+                    "createdById"
+                  ],
                   "name": "report_createdById_idx_8bf640ed",
                   "prefix": "report_createdById_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["objectId"],
+                  "columns": [
+                    "objectId"
+                  ],
                   "name": "report_objectId_idx_08ca88de",
                   "prefix": "report_objectId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["packageId"],
+                  "columns": [
+                    "packageId"
+                  ],
                   "name": "report_packageId_idx_51f866f4",
                   "prefix": "report_packageId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": [
                 {
-                  "columns": ["packageId", "version"]
+                  "columns": [
+                    "packageId",
+                    "version"
+                  ]
                 }
               ]
             },
@@ -7256,36 +8307,48 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["requirementSetId"],
+                    "columns": [
+                      "requirementSetId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "requirementItem"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "requirementSet"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["documentTypeId"],
+                    "columns": [
+                      "documentTypeId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "requirementItem"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "documentType"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["ruleId"],
+                    "columns": [
+                      "ruleId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "requirementItem"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "rule"
                   }
@@ -7293,26 +8356,34 @@
               ],
               "indexes": [
                 {
-                  "columns": ["documentTypeId"],
+                  "columns": [
+                    "documentTypeId"
+                  ],
                   "name": "requirementItem_documentTypeId_idx_878907da",
                   "prefix": "requirementItem_documentTypeId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["requirementSetId"],
+                  "columns": [
+                    "requirementSetId"
+                  ],
                   "name": "requirementItem_requirementSetId_idx_648eca97",
                   "prefix": "requirementItem_requirementSetId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["ruleId"],
+                  "columns": [
+                    "ruleId"
+                  ],
                   "name": "requirementItem_ruleId_idx_05e770f7",
                   "prefix": "requirementItem_ruleId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": []
             },
@@ -7374,36 +8445,48 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["objectTypeId"],
+                    "columns": [
+                      "objectTypeId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "requirementSet"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "objectType"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["workTypeId"],
+                    "columns": [
+                      "workTypeId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "requirementSet"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "workType"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["customerProfileId"],
+                    "columns": [
+                      "customerProfileId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "requirementSet"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "customerRequirementProfile"
                   }
@@ -7411,26 +8494,34 @@
               ],
               "indexes": [
                 {
-                  "columns": ["customerProfileId"],
+                  "columns": [
+                    "customerProfileId"
+                  ],
                   "name": "requirementSet_customerProfileId_idx_dd39e3f1",
                   "prefix": "requirementSet_customerProfileId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["objectTypeId"],
+                  "columns": [
+                    "objectTypeId"
+                  ],
                   "name": "requirementSet_objectTypeId_idx_a6eceb0b",
                   "prefix": "requirementSet_objectTypeId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["workTypeId"],
+                  "columns": [
+                    "workTypeId"
+                  ],
                   "name": "requirementSet_workTypeId_idx_2e2586e9",
                   "prefix": "requirementSet_workTypeId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": []
             },
@@ -7464,11 +8555,15 @@
               "foreignKeys": [],
               "indexes": [],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": [
                 {
-                  "columns": ["code"]
+                  "columns": [
+                    "code"
+                  ]
                 }
               ]
             },
@@ -7525,24 +8620,32 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["ruleId"],
+                    "columns": [
+                      "ruleId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "ruleVersion"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "rule"
                   }
                 },
                 {
                   "source": {
-                    "columns": ["normativeSourceId"],
+                    "columns": [
+                      "normativeSourceId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "ruleVersion"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "normativeSource"
                   }
@@ -7550,24 +8653,138 @@
               ],
               "indexes": [
                 {
-                  "columns": ["normativeSourceId"],
+                  "columns": [
+                    "normativeSourceId"
+                  ],
                   "name": "ruleVersion_normativeSourceId_idx_361bcc25",
                   "prefix": "ruleVersion_normativeSourceId_idx",
                   "unique": false
                 },
                 {
-                  "columns": ["ruleId"],
+                  "columns": [
+                    "ruleId"
+                  ],
                   "name": "ruleVersion_ruleId_idx_05e770f7",
                   "prefix": "ruleVersion_ruleId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": [
                 {
-                  "columns": ["ruleId", "version"]
+                  "columns": [
+                    "ruleId",
+                    "version"
+                  ]
+                }
+              ]
+            },
+            "session": {
+              "columns": {
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "expiresAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
+                  "nullable": false
+                },
+                "ip": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "lastSeenAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "revokedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "tokenHash": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "userAgent": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "userId": {
+                  "codecId": "pg/uuid@1",
+                  "nativeType": "uuid",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "session"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "expiresAt"
+                  ],
+                  "name": "session_expiresAt_idx_6b6b8c10",
+                  "prefix": "session_expiresAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "userId"
+                  ],
+                  "name": "session_userId_idx_a489d58a",
+                  "prefix": "session_userId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "tokenHash"
+                  ]
                 }
               ]
             },
@@ -7640,12 +8857,16 @@
               "foreignKeys": [
                 {
                   "source": {
-                    "columns": ["documentId"],
+                    "columns": [
+                      "documentId"
+                    ],
                     "namespaceId": "public",
                     "tableName": "sourceRef"
                   },
                   "target": {
-                    "columns": ["id"],
+                    "columns": [
+                      "id"
+                    ],
                     "namespaceId": "public",
                     "tableName": "document"
                   }
@@ -7653,14 +8874,18 @@
               ],
               "indexes": [
                 {
-                  "columns": ["documentId"],
+                  "columns": [
+                    "documentId"
+                  ],
                   "name": "sourceRef_documentId_idx_825ef746",
                   "prefix": "sourceRef_documentId_idx",
                   "unique": false
                 }
               ],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": []
             },
@@ -7731,11 +8956,15 @@
               "foreignKeys": [],
               "indexes": [],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": [
                 {
-                  "columns": ["email"]
+                  "columns": [
+                    "email"
+                  ]
                 }
               ]
             },
@@ -7774,11 +9003,15 @@
               "foreignKeys": [],
               "indexes": [],
               "primaryKey": {
-                "columns": ["id"]
+                "columns": [
+                  "id"
+                ]
               },
               "uniques": [
                 {
-                  "columns": ["code"]
+                  "columns": [
+                    "code"
+                  ]
                 }
               ]
             }
@@ -7786,75 +9019,161 @@
           "valueSet": {
             "ChecklistItemStatus": {
               "kind": "valueSet",
-              "values": ["missing", "partial", "complete"]
+              "values": [
+                "missing",
+                "partial",
+                "complete"
+              ]
             },
             "Criticality": {
               "kind": "valueSet",
-              "values": ["low", "medium", "high", "critical"]
+              "values": [
+                "low",
+                "medium",
+                "high",
+                "critical"
+              ]
             },
             "DocumentStatus": {
               "kind": "valueSet",
-              "values": ["awaiting_upload", "uploaded", "queued", "processing", "done", "failed"]
+              "values": [
+                "awaiting_upload",
+                "uploaded",
+                "queued",
+                "processing",
+                "done",
+                "failed"
+              ]
             },
             "FindingSeverity": {
               "kind": "valueSet",
-              "values": ["info", "warning", "error", "critical"]
+              "values": [
+                "info",
+                "warning",
+                "error",
+                "critical"
+              ]
             },
             "FindingStatus": {
               "kind": "valueSet",
-              "values": ["open", "accepted", "dismissed", "fixed"]
+              "values": [
+                "open",
+                "accepted",
+                "dismissed",
+                "fixed"
+              ]
             },
             "MembershipRole": {
               "kind": "valueSet",
-              "values": ["owner", "engineer"]
+              "values": [
+                "owner",
+                "engineer"
+              ]
             },
             "MembershipStatus": {
               "kind": "valueSet",
-              "values": ["active", "invited", "disabled"]
+              "values": [
+                "active",
+                "invited",
+                "disabled"
+              ]
             },
             "ObjectStatus": {
               "kind": "valueSet",
-              "values": ["draft", "active", "on_hold", "completed", "archived"]
+              "values": [
+                "draft",
+                "active",
+                "on_hold",
+                "completed",
+                "archived"
+              ]
             },
             "OrganizationKind": {
               "kind": "valueSet",
-              "values": ["tenant", "counterparty"]
+              "values": [
+                "tenant",
+                "counterparty"
+              ]
             },
             "OrganizationStatus": {
               "kind": "valueSet",
-              "values": ["active", "suspended"]
+              "values": [
+                "active",
+                "suspended"
+              ]
             },
             "PackageStatus": {
               "kind": "valueSet",
-              "values": ["uploading", "queued", "processing", "done", "partial", "failed"]
+              "values": [
+                "uploading",
+                "queued",
+                "processing",
+                "done",
+                "partial",
+                "failed"
+              ]
             },
             "ReportScope": {
               "kind": "valueSet",
-              "values": ["accepted", "errors", "all_open"]
+              "values": [
+                "accepted",
+                "errors",
+                "all_open"
+              ]
             },
             "ReportStatus": {
               "kind": "valueSet",
-              "values": ["queued", "generating", "ready", "failed"]
+              "values": [
+                "queued",
+                "generating",
+                "ready",
+                "failed"
+              ]
             },
             "RequirementSetStatus": {
               "kind": "valueSet",
-              "values": ["draft", "active", "retired"]
+              "values": [
+                "draft",
+                "active",
+                "retired"
+              ]
             },
             "SourceKind": {
               "kind": "valueSet",
-              "values": ["pdf", "xlsx", "docx"]
+              "values": [
+                "pdf",
+                "xlsx",
+                "docx"
+              ]
             },
             "StageName": {
               "kind": "valueSet",
-              "values": ["extract", "ocr", "classify", "parse", "rules", "explain"]
+              "values": [
+                "extract",
+                "ocr",
+                "classify",
+                "parse",
+                "rules",
+                "explain"
+              ]
             },
             "StageStatus": {
               "kind": "valueSet",
-              "values": ["pending", "running", "succeeded", "failed", "skipped"]
+              "values": [
+                "pending",
+                "running",
+                "succeeded",
+                "failed",
+                "skipped"
+              ]
             },
             "UserStatus": {
               "kind": "valueSet",
-              "values": ["active", "invited", "disabled"]
+              "values": [
+                "active",
+                "invited",
+                "disabled"
+              ]
             }
           }
         },
@@ -7862,10 +9181,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "eb708c08fb89d52bdcdb299e39f561f04defc01139117bcda513e94f373e51eb"
+    "storageHash": "7fc73f779409e021970741232f3d0444f72d5499c43c28efba9d996968842952"
   },
   "execution": {
-    "executionHash": "dc2eb735c6012136e320a21188d8c8a8ac74fa7052e6891dc963d5397ecd9a92",
+    "executionHash": "87e3c9d5266828a591d5e27b9706d1e65f2349886bd72ef540ef72e49bfc0887",
     "mutations": {
       "defaults": [
         {
@@ -8201,6 +9520,17 @@
             "column": "id",
             "namespace": "public",
             "table": "ruleVersion"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "id",
+            "namespace": "public",
+            "table": "session"
           }
         },
         {

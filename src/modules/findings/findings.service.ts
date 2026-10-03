@@ -7,7 +7,7 @@ import type {
   ListFindingsQuery,
   PageMeta,
   SeverityCounts,
-} from "../../common/dto/openapi.types";
+} from "../../common/dto/openapi.types.js";
 
 @Injectable()
 export class FindingsService {

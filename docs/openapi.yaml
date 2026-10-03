@@ -29,7 +29,7 @@ info:
     ## Открытые вопросы (x-draft)
 
     - Формат `bbox` в `SourceRef`: сейчас доли страницы 0..1 от верхнего левого угла.
-    - Механизм авторизации: OIDC (ZITADEL) Authorization Code + PKCE, сессия в HttpOnly cookie `ai_pto_session`.
+    - Механизм авторизации выбирается `AUTH_PROVIDER`: `zitadel` (OIDC Authorization Code + PKCE) или `local` (email/пароль из БД). Сессия в обоих случаях в HttpOnly cookie `ai_pto_session`.
     - SSE или WebSocket для прогресса: сейчас описан SSE.
     - Полный список типов документов (`DocumentType`) уточнить по документации.
   contact:
@@ -57,13 +57,45 @@ security:
 
 paths:
   /auth/login:
+    post:
+      tags: [Auth]
+      operationId: loginWithPassword
+      summary: Вход по email и паролю (AUTH_PROVIDER=local)
+      security: []
+      description: |
+        Доступен только при `AUTH_PROVIDER=local`, иначе `404`. Проверяет учётные данные,
+        создаёт серверную сессию в PostgreSQL и выставляет HttpOnly cookie `ai_pto_session`.
+        Организация и роль берутся из активного membership пользователя и перечитываются на каждом запросе.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginRequest" }
+      responses:
+        "200":
+          description: Успех — Set-Cookie
+          headers:
+            Set-Cookie:
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401":
+          description: Неверный email или пароль
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { code: invalid_credentials, message: Неверный email или пароль }
+        "404": { $ref: "#/components/responses/NotFound" }
     get:
       tags: [Auth]
       operationId: login
       summary: Начать OIDC вход (redirect на ZITADEL)
       security: []
       description: |
-        Генерирует PKCE challenge, сохраняет state в Redis и перенаправляет браузер
+        Доступен только при `AUTH_PROVIDER=zitadel` (по умолчанию), иначе `404`.
+        Генерирует PKCE challenge, сохраняет state в PostgreSQL и перенаправляет браузер
         на Authorization Endpoint ZITADEL (Authorization Code Flow + PKCE).
       responses:
         "302":
@@ -80,7 +112,7 @@ paths:
       security: []
       description: |
         Обменивает authorization code на токены у ZITADEL, создаёт серверную сессию
-        в Redis и выставляет HttpOnly cookie `ai_pto_session`, затем redirect на `/auth/me`.
+        в PostgreSQL и выставляет HttpOnly cookie `ai_pto_session`, затем redirect на `/auth/me`.
       parameters:
         - name: code
           in: query
@@ -811,7 +843,7 @@ components:
       type: apiKey
       in: cookie
       name: ai_pto_session
-      description: Opaque session id; данные сессии хранятся в Redis.
+      description: Opaque-токен сессии; в PostgreSQL хранится только его SHA-256, роль и организация читаются из актуального membership.
 
   parameters:
     ObjectId:
@@ -979,15 +1011,22 @@ components:
       properties:
         id:
           type: string
-          description: OIDC subject (`sub`) из ZITADEL
+          description: OIDC subject (`sub`) при ZITADEL, UUID пользователя при local
         email: { type: string, format: email }
         name: { type: string }
         organizationId:
           type: string
-          description: ZITADEL organization / resource owner id
+          description: ZITADEL organization / resource owner id при ZITADEL, UUID организации при local
         role:
           type: string
           enum: [engineer, contractor]
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 1 }
 
     ProtectedResponse:
       type: object

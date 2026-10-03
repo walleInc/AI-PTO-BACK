@@ -1,7 +1,7 @@
 import { Controller, Get, Req, UseGuards } from "@nestjs/common";
 import type { Request } from "express";
-import type { ProtectedResponse, User } from "../../common/dto/openapi.types";
-import { SessionGuard } from "./session.guard";
+import type { ProtectedResponse, User } from "../../common/dto/openapi.types.js";
+import { SessionGuard } from "./session.guard.js";
 
 @Controller("protected")
 export class ProtectedController {

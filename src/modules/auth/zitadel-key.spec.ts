@@ -1,5 +1,5 @@
 import { generateKeyPairSync } from "node:crypto";
-import { parseZitadelAppKeyJson, zitadelAppKeyToJwks } from "./zitadel-key";
+import { parseZitadelAppKeyJson, zitadelAppKeyToJwks } from "./zitadel-key.js";
 
 function samplePem(): string {
   const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });

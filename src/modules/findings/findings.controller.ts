@@ -7,8 +7,8 @@ import type {
   ListFindingsQuery,
   PageMeta,
   SeverityCounts,
-} from "../../common/dto/openapi.types";
-import { FindingsService } from "./findings.service";
+} from "../../common/dto/openapi.types.js";
+import { FindingsService } from "./findings.service.js";
 
 @Controller()
 export class FindingsController {

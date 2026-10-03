@@ -5,9 +5,9 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import type { Request } from "express";
-import type { User } from "../../common/dto/openapi.types";
-import { SESSION_COOKIE_NAME } from "./auth.constants";
-import { SessionService } from "./session.service";
+import type { User } from "../../common/dto/openapi.types.js";
+import { SESSION_COOKIE_NAME } from "./auth.constants.js";
+import { SessionService } from "./session.service.js";
 
 @Injectable()
 export class SessionGuard implements CanActivate {
@@ -15,15 +15,8 @@ export class SessionGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<Request & { user?: User }>();
-    const sessionId = req.cookies?.[SESSION_COOKIE_NAME] as string | undefined;
-    if (!sessionId) {
-      throw new UnauthorizedException({
-        code: "unauthorized",
-        message: "Требуется вход в систему",
-      });
-    }
-
-    const user = await this.sessions.getSession(sessionId);
+    const token = req.cookies?.[SESSION_COOKIE_NAME] as string | undefined;
+    const user = token ? await this.sessions.getSessionUser(token) : null;
     if (!user) {
       throw new UnauthorizedException({
         code: "unauthorized",

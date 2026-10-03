@@ -7,7 +7,7 @@ import type {
   DocumentUpdate,
   ListDocumentsQuery,
   PageMeta,
-} from "../../common/dto/openapi.types";
+} from "../../common/dto/openapi.types.js";
 
 @Injectable()
 export class DocumentsService {

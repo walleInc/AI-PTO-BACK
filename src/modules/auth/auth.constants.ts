@@ -21,3 +21,17 @@ export function sessionCookieOptions(maxAgeSeconds?: number) {
     ...(maxAgeSeconds !== undefined ? { maxAge: maxAgeSeconds * 1000 } : {}),
   };
 }
+
+export type AuthProvider = "zitadel" | "local";
+
+/** `AUTH_PROVIDER=local` — email/пароль из БД; по умолчанию `zitadel` (OIDC). */
+export function getAuthProvider(): AuthProvider {
+  const raw = process.env.AUTH_PROVIDER?.trim().toLowerCase();
+  if (!raw || raw === "zitadel") {
+    return "zitadel";
+  }
+  if (raw === "local") {
+    return "local";
+  }
+  throw new Error(`Unsupported AUTH_PROVIDER "${raw}": expected "zitadel" or "local"`);
+}

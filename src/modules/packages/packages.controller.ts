@@ -7,8 +7,8 @@ import type {
   PackageDetail,
   Report,
   ReportCreate,
-} from "../../common/dto/openapi.types";
-import { PackagesService } from "./packages.service";
+} from "../../common/dto/openapi.types.js";
+import { PackagesService } from "./packages.service.js";
 
 @Controller()
 export class PackagesController {
