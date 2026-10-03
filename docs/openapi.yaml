@@ -64,8 +64,8 @@ paths:
       security: []
       description: |
         Доступен только при `AUTH_PROVIDER=local`, иначе `404`. Проверяет учётные данные,
-        создаёт серверную сессию в Redis и выставляет HttpOnly cookie `ai_pto_session`.
-        Организация и роль берутся из активного membership пользователя.
+        создаёт серверную сессию в PostgreSQL и выставляет HttpOnly cookie `ai_pto_session`.
+        Организация и роль берутся из активного membership пользователя и перечитываются на каждом запросе.
       requestBody:
         required: true
         content:
@@ -95,7 +95,7 @@ paths:
       security: []
       description: |
         Доступен только при `AUTH_PROVIDER=zitadel` (по умолчанию), иначе `404`.
-        Генерирует PKCE challenge, сохраняет state в Redis и перенаправляет браузер
+        Генерирует PKCE challenge, сохраняет state в PostgreSQL и перенаправляет браузер
         на Authorization Endpoint ZITADEL (Authorization Code Flow + PKCE).
       responses:
         "302":
@@ -112,7 +112,7 @@ paths:
       security: []
       description: |
         Обменивает authorization code на токены у ZITADEL, создаёт серверную сессию
-        в Redis и выставляет HttpOnly cookie `ai_pto_session`, затем redirect на `/auth/me`.
+        в PostgreSQL и выставляет HttpOnly cookie `ai_pto_session`, затем redirect на `/auth/me`.
       parameters:
         - name: code
           in: query
@@ -843,7 +843,7 @@ components:
       type: apiKey
       in: cookie
       name: ai_pto_session
-      description: Opaque session id; данные сессии хранятся в Redis.
+      description: Opaque-токен сессии; в PostgreSQL хранится только его SHA-256, роль и организация читаются из актуального membership.
 
   parameters:
     ObjectId:

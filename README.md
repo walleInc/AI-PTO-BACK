@@ -1,6 +1,6 @@
 # Бекенд ПТО-AI
 
-NestJS + Prisma 8 + PostgreSQL + Redis. Auth: `AUTH_PROVIDER=local` (email/пароль) или `zitadel` (OIDC, Authorization Code + PKCE), сессия в cookie `ai_pto_session`.
+NestJS + Prisma 8 + PostgreSQL. Auth: `AUTH_PROVIDER=local` (email/пароль) или `zitadel` (OIDC, Authorization Code + PKCE), сессия в cookie `ai_pto_session`.
 
 ## Быстрый старт (Docker)
 
@@ -10,7 +10,7 @@ NestJS + Prisma 8 + PostgreSQL + Redis. Auth: `AUTH_PROVIDER=local` (email/па�
 # 1) env для хоста (migrate / yarn start:dev снаружи контейнера)
 cp .env.example .env
 
-# 2) поднять Postgres + Redis + API (миграции применяются при старте api)
+# 2) поднять Postgres + API (миграции применяются при старте api)
 docker compose up -d --build
 
 # 3) API
@@ -33,7 +33,7 @@ docker compose --profile full up -d --build
 
 ## Auth (smoke без frontend)
 
-Способ входа выбирается переменной `AUTH_PROVIDER`: `zitadel` (по умолчанию, OIDC, тяжёлый внешний IdP) или `local` (email и пароль из PostgreSQL, ZITADEL не нужен). Сессия в обоих режимах одна и та же: Redis + cookie `ai_pto_session`, а `/auth/me`, `/auth/logout`, `/protected` работают одинаково. Эндпоинты чужого режима отвечают `404`.
+Способ входа выбирается переменной `AUTH_PROVIDER`: `zitadel` (по умолчанию, OIDC, тяжёлый внешний IdP) или `local` (email и пароль из PostgreSQL, ZITADEL не нужен). Сессия в обоих режимах одна и та же: opaque-токен в cookie `ai_pto_session`, в таблице `Session` PostgreSQL хранится только его SHA-256. Роль и организация читаются из `Membership` на каждом запросе, поэтому смена роли, блокировка или удаление пользователя действуют сразу (ZITADEL только аутентифицирует, пользователь ищется в БД по email), а `/auth/me`, `/auth/logout`, `/protected` работают одинаково. Эндпоинты чужого режима отвечают `404`.
 
 ### Вариант 1: локальная авторизация (`AUTH_PROVIDER=local`)
 
@@ -54,6 +54,8 @@ curl -b cookies.txt http://localhost:3000/api/auth/me
 Неверный email, пароль, заблокированный пользователь и отсутствие активного membership дают один и тот же `401 invalid_credentials`.
 
 ### Вариант 2: ZITADEL (`AUTH_PROVIDER=zitadel`)
+
+Пользователь, роль и организация берутся из нашей БД: после входа в ZITADEL пользователь ищется по email (должен быть подтверждён) среди `User`, поэтому сначала создай его через `yarn user:create`. Роли из токена ZITADEL не используются.
 
 1. Подними ZITADEL (`zitadel/`) и заполни в корневом `.env`: `ZITADEL_ISSUER`, `ZITADEL_CLIENT_ID`, `ZITADEL_KEY_PATH` (JSON-ключ из Console → Application → Keys), `ZITADEL_REDIRECT_URI`.
 2. В ZITADEL Application: Redirect URI = `http://localhost:3000/api/auth/callback`, Auth Method = Private Key JWT; желательно «Include user's profile info in the ID Token».
@@ -100,7 +102,6 @@ yarn lint && yarn typecheck && yarn test
 | --- | --- | --- |
 | `DATABASE_URL` | Хост (`.env`) | `postgresql://pto:pto@localhost:5433/ai_pto` |
 | `DATABASE_URL` | Контейнер `api` (compose) | `postgresql://pto:pto@postgres:5432/ai_pto` |
-| `REDIS_URL` | Хост / API | `redis://localhost:6379` (в compose: `redis://redis:6379`) |
 | `PORT` | API | `3000` |
 | `AUTH_PROVIDER` | API | `zitadel` (по умолчанию) или `local` |
 | `ZITADEL_ISSUER` | API (только `zitadel`) | `http://localhost:8080` |
@@ -110,7 +111,7 @@ yarn lint && yarn typecheck && yarn test
 
 Почему порт Postgres **5433** на хосте: часто уже занят локальный Postgres на `5432`. Внутри сети compose сервис `postgres` слушает `5432`, с хоста ходить нужно на `localhost:5433`.
 
-Секреты: `.env` и `secrets/` в git не коммитятся. Для Docker API `DATABASE_URL` / `REDIS_URL` задаются в `docker-compose.yml`.
+Секреты: `.env` и `secrets/` в git не коммитятся. Для Docker API `DATABASE_URL` задаётся в `docker-compose.yml`.
 
 ## Разработка без контейнера API
 
@@ -118,7 +119,7 @@ yarn lint && yarn typecheck && yarn test
 cp .env.example .env
 # AUTH_PROVIDER=zitadel: заполни ZITADEL_* и положи ключ по ZITADEL_KEY_PATH
 # AUTH_PROVIDER=local: ZITADEL не нужен, создай пользователя через `yarn user:create`
-docker compose up -d postgres redis
+docker compose up -d postgres
 docker compose -f zitadel/docker-compose.yml --env-file zitadel/.env up -d   # только для AUTH_PROVIDER=zitadel
 yarn
 yarn prisma db migrate
