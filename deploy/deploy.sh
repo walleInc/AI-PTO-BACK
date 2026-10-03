@@ -18,7 +18,8 @@ for _ in $(seq 1 30); do
   code="$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:${port:-3000}/api/auth/me" || true)"
   if [ "$code" = "401" ] || [ "$code" = "200" ]; then
     echo "API отвечает ($code), деплой готов: $API_IMAGE"
-    docker image prune -f >/dev/null
+    # Диск маленький: убираем все неиспользуемые образы (старые теги). Откат = pull нужного тега из GHCR.
+    docker image prune -af >/dev/null
     docker logout ghcr.io >/dev/null
     exit 0
   fi
