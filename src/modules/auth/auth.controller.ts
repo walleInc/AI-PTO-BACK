@@ -20,6 +20,10 @@ import { AuthService } from "./auth.service";
 import { parseLoginRequest } from "./login.dto";
 import { SessionGuard } from "./session.guard";
 
+function sessionMeta(req: Request) {
+  return { userAgent: req.get("user-agent"), ip: req.ip };
+}
+
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -34,18 +38,24 @@ export class AuthController {
   @Post("login")
   @HttpCode(200)
   async loginWithPassword(
+    @Req() req: Request,
     @Body() body: unknown,
     @Res({ passthrough: true }) res: Response,
   ): Promise<User> {
     this.authService.assertProvider("local");
     const { email, password } = parseLoginRequest(body);
-    const { sessionId, user } = await this.authService.loginWithPassword(email, password);
+    const { sessionId, user } = await this.authService.loginWithPassword(
+      email,
+      password,
+      sessionMeta(req),
+    );
     res.cookie(SESSION_COOKIE_NAME, sessionId, sessionCookieOptions(getSessionTtlSeconds()));
     return user;
   }
 
   @Get("callback")
   async callback(
+    @Req() req: Request,
     @Query("code") code: string | undefined,
     @Query("state") state: string | undefined,
     @Query("error") error: string | undefined,
@@ -53,12 +63,10 @@ export class AuthController {
     @Res() res: Response,
   ): Promise<void> {
     this.authService.assertProvider("zitadel");
-    const { sessionId } = await this.authService.handleCallback({
-      code,
-      state,
-      error,
-      error_description: errorDescription,
-    });
+    const { sessionId } = await this.authService.handleCallback(
+      { code, state, error, error_description: errorDescription },
+      sessionMeta(req),
+    );
     res.cookie(SESSION_COOKIE_NAME, sessionId, sessionCookieOptions(getSessionTtlSeconds()));
     res.redirect(302, "/api/auth/me");
   }

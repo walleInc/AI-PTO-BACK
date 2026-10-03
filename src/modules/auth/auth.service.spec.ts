@@ -9,20 +9,20 @@ const noDb = {} as AppDb;
 
 describe("AuthService.logout", () => {
   it("deletes session when cookie present", async () => {
-    const deleteSession = jest.fn().mockResolvedValue(undefined);
-    const sessions = { deleteSession } as unknown as SessionService;
+    const revokeSession = jest.fn().mockResolvedValue(undefined);
+    const sessions = { revokeSession } as unknown as SessionService;
     const oidc = {} as OidcService;
     const service = new AuthService(oidc, sessions, noDb);
     await service.logout("sid-1");
-    expect(deleteSession).toHaveBeenCalledWith("sid-1");
+    expect(revokeSession).toHaveBeenCalledWith("sid-1");
   });
 
   it("no-ops when cookie missing", async () => {
-    const deleteSession = jest.fn();
-    const sessions = { deleteSession } as unknown as SessionService;
+    const revokeSession = jest.fn();
+    const sessions = { revokeSession } as unknown as SessionService;
     const service = new AuthService({} as OidcService, sessions, noDb);
     await service.logout(undefined);
-    expect(deleteSession).not.toHaveBeenCalled();
+    expect(revokeSession).not.toHaveBeenCalled();
   });
 });
 
@@ -48,87 +48,46 @@ describe("AuthService.loginWithPassword", () => {
     }
   });
 
-  async function setup(opts: {
-    user?: Record<string, unknown> | null;
-    memberships?: Array<Record<string, unknown>>;
-  }) {
-    const userRow =
-      opts.user === null
-        ? null
-        : {
-            id: "user-1",
-            email: "eng@example.com",
-            name: "Инженер",
-            status: "active",
-            passwordHash: await hashPassword("correct-password"),
-            ...opts.user,
-          };
+  const identity = {
+    id: "user-1",
+    email: "eng@example.com",
+    name: "Инженер",
+    organizationId: "org-1",
+    role: "owner" as const,
+  };
+
+  async function setup(opts: { user?: boolean; identity?: typeof identity | null }) {
+    const userRow = opts.user === false ? null : { id: "user-1", passwordHash: await hashPassword("correct-password") };
+    const where = jest.fn(() => ({
+      first: jest.fn().mockResolvedValue(userRow),
+      update: userUpdate,
+    }));
     const userUpdate = jest.fn().mockResolvedValue(undefined);
-    const db = {
-      orm: {
-        public: {
-          User: {
-            where: jest.fn(() => ({
-              first: jest.fn().mockResolvedValue(userRow),
-              update: userUpdate,
-            })),
-          },
-          Membership: {
-            where: jest.fn(() => ({
-              include: () => ({
-                orderBy: () => ({
-                  all: jest.fn().mockResolvedValue(
-                    opts.memberships ?? [
-                      {
-                        organizationId: "org-1",
-                        role: "owner",
-                        organization: { status: "active" },
-                      },
-                    ],
-                  ),
-                }),
-              }),
-            })),
-          },
-        },
-      },
-    } as unknown as AppDb;
-    const createSession = jest.fn().mockResolvedValue("sid-1");
+    const db = { orm: { public: { User: { where } } } } as unknown as AppDb;
+    const loadUser = jest.fn().mockResolvedValue(opts.identity === undefined ? identity : opts.identity);
+    const createSession = jest.fn().mockResolvedValue("token-1");
     const service = new AuthService(
       {} as OidcService,
-      { createSession } as unknown as SessionService,
+      { loadUser, createSession } as unknown as SessionService,
       db,
     );
-    return { service, createSession, userUpdate };
+    return { service, where, createSession, userUpdate };
   }
 
   it("creates a session and returns the user for valid credentials", async () => {
-    const { service, createSession, userUpdate } = await setup({});
-    const result = await service.loginWithPassword(" Eng@Example.com ", "correct-password");
-    expect(result).toEqual({
-      sessionId: "sid-1",
-      user: {
-        id: "user-1",
-        email: "eng@example.com",
-        name: "Инженер",
-        organizationId: "org-1",
-        role: "owner",
-      },
-    });
-    expect(createSession).toHaveBeenCalledWith(result.user);
+    const { service, where, createSession, userUpdate } = await setup({});
+    const meta = { userAgent: "ua", ip: "1.2.3.4" };
+    const result = await service.loginWithPassword(" Eng@Example.com ", "correct-password", meta);
+    expect(result).toEqual({ sessionId: "token-1", user: identity });
+    expect(where).toHaveBeenCalledWith({ email: "eng@example.com" });
+    expect(createSession).toHaveBeenCalledWith("user-1", meta);
     expect(userUpdate).toHaveBeenCalledWith({ lastLoginAt: expect.any(String) });
   });
 
   it.each([
-    ["wrong password", { user: {} }, "wrong"],
-    ["unknown email", { user: null }, "correct-password"],
-    ["disabled user", { user: { status: "disabled" } }, "correct-password"],
-    ["no memberships", { user: {}, memberships: [] }, "correct-password"],
-    [
-      "inactive organization",
-      { user: {}, memberships: [{ organizationId: "o", role: "owner", organization: { status: "suspended" } }] },
-      "correct-password",
-    ],
+    ["wrong password", {}, "wrong"],
+    ["unknown email", { user: false }, "correct-password"],
+    ["blocked user or no active membership", { identity: null }, "correct-password"],
   ])("rejects with invalid_credentials: %s", async (_label, opts, password) => {
     const { service, createSession } = await setup(opts);
     await expect(service.loginWithPassword("eng@example.com", password)).rejects.toMatchObject({

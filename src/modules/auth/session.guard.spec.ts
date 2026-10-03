@@ -14,12 +14,12 @@ function mockContext(cookies: Record<string, string> | undefined) {
 }
 
 describe("SessionGuard", () => {
-  const getSession = jest.fn();
-  const sessions = { getSession } as unknown as SessionService;
+  const getSessionUser = jest.fn();
+  const sessions = { getSessionUser } as unknown as SessionService;
   const guard = new SessionGuard(sessions);
 
   beforeEach(() => {
-    getSession.mockReset();
+    getSessionUser.mockReset();
   });
 
   it("rejects missing cookie with 401", async () => {
@@ -28,7 +28,7 @@ describe("SessionGuard", () => {
   });
 
   it("rejects unknown session with 401", async () => {
-    getSession.mockResolvedValue(null);
+    getSessionUser.mockResolvedValue(null);
     const ctx = mockContext({ [SESSION_COOKIE_NAME]: "missing" });
     await expect(guard.canActivate(ctx as never)).rejects.toBeInstanceOf(UnauthorizedException);
   });
@@ -41,7 +41,7 @@ describe("SessionGuard", () => {
       organizationId: "org",
       role: "engineer" as const,
     };
-    getSession.mockResolvedValue(user);
+    getSessionUser.mockResolvedValue(user);
     const ctx = mockContext({ [SESSION_COOKIE_NAME]: "sid" });
     await expect(guard.canActivate(ctx as never)).resolves.toBe(true);
     expect(ctx.req.user).toEqual(user);

@@ -15,15 +15,8 @@ export class SessionGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<Request & { user?: User }>();
-    const sessionId = req.cookies?.[SESSION_COOKIE_NAME] as string | undefined;
-    if (!sessionId) {
-      throw new UnauthorizedException({
-        code: "unauthorized",
-        message: "Требуется вход в систему",
-      });
-    }
-
-    const user = await this.sessions.getSession(sessionId);
+    const token = req.cookies?.[SESSION_COOKIE_NAME] as string | undefined;
+    const user = token ? await this.sessions.getSessionUser(token) : null;
     if (!user) {
       throw new UnauthorizedException({
         code: "unauthorized",
