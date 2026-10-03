@@ -19,7 +19,6 @@ ENV PORT=3000
 COPY package.json yarn.lock prisma.config.ts ./
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
-RUN printf '%s' '{"type":"commonjs"}' > ./dist/package.json
 COPY src/prisma ./src/prisma
 COPY migrations ./migrations
 COPY docker/entrypoint.sh ./docker/entrypoint.sh
