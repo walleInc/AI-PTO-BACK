@@ -41,6 +41,11 @@ export interface SeverityCounts {
   critical: number;
 }
 
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
 export interface User {
   id: string;
   email: string;

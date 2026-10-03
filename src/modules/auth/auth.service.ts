@@ -1,19 +1,77 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
 import type { User } from "../../common/dto/openapi.types";
+import { DB, type AppDb } from "../../prisma/db.token";
+import { getAuthProvider } from "./auth.constants";
 import { mapOidcClaimsToUser } from "./claims.mapper";
 import { OidcService } from "./oidc.service";
+import { hashPassword, verifyPassword } from "./password";
 import { SessionService } from "./session.service";
+
+const INVALID_CREDENTIALS = {
+  code: "invalid_credentials",
+  message: "Неверный email или пароль",
+};
+
+// Hash of a random password: lets login spend the same time for unknown emails.
+const DUMMY_HASH = hashPassword(`dummy-${Date.now()}-${Math.random()}`);
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly oidc: OidcService,
     private readonly sessions: SessionService,
+    @Inject(DB) private readonly db: AppDb,
   ) {}
+
+  /** OIDC flow (`/auth/login` GET, `/auth/callback`) exists only with AUTH_PROVIDER=zitadel. */
+  assertProvider(expected: "zitadel" | "local"): void {
+    if (getAuthProvider() !== expected) {
+      throw new NotFoundException({
+        code: "not_found",
+        message: "Этот способ входа отключён",
+      });
+    }
+  }
+
+  async loginWithPassword(email: string, password: string): Promise<{ sessionId: string; user: User }> {
+    const normalizedEmail = email.trim().toLowerCase();
+    const row = await this.db.orm.public.User.where({ email: normalizedEmail }).first();
+    const passwordOk = await verifyPassword(password, row?.passwordHash ?? (await DUMMY_HASH));
+    if (!row || !passwordOk || row.status !== "active") {
+      throw new UnauthorizedException(INVALID_CREDENTIALS);
+    }
+
+    const memberships = await this.db.orm.public.Membership.where({
+      userId: row.id,
+      status: "active",
+    })
+      .include("organization")
+      .orderBy((m) => m.createdAt.asc())
+      .all();
+    const membership = memberships.find((m) => m.organization?.status === "active");
+    if (!membership) {
+      throw new UnauthorizedException(INVALID_CREDENTIALS);
+    }
+
+    const user: User = {
+      id: row.id,
+      email: row.email,
+      name: row.name,
+      organizationId: membership.organizationId,
+      role: membership.role,
+    };
+    const sessionId = await this.sessions.createSession(user);
+    await this.db.orm.public.User.where({ id: row.id }).update({
+      lastLoginAt: new Date().toISOString(),
+    });
+    return { sessionId, user };
+  }
 
   async startLogin(): Promise<string> {
     const { state, codeVerifier, codeChallenge } = this.oidc.createPkce();

@@ -23,7 +23,8 @@
     "prepare": "husky",
     "postinstall": "prisma skills sync || exit 0",
     "contract:emit": "prisma contract emit",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "user:create": "node scripts/create-user.mjs"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

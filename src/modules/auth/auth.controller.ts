@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   HttpCode,
@@ -16,6 +17,7 @@ import {
   sessionCookieOptions,
 } from "./auth.constants";
 import { AuthService } from "./auth.service";
+import { parseLoginRequest } from "./login.dto";
 import { SessionGuard } from "./session.guard";
 
 @Controller("auth")
@@ -24,8 +26,22 @@ export class AuthController {
 
   @Get("login")
   async login(@Res() res: Response): Promise<void> {
+    this.authService.assertProvider("zitadel");
     const url = await this.authService.startLogin();
     res.redirect(302, url);
+  }
+
+  @Post("login")
+  @HttpCode(200)
+  async loginWithPassword(
+    @Body() body: unknown,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<User> {
+    this.authService.assertProvider("local");
+    const { email, password } = parseLoginRequest(body);
+    const { sessionId, user } = await this.authService.loginWithPassword(email, password);
+    res.cookie(SESSION_COOKIE_NAME, sessionId, sessionCookieOptions(getSessionTtlSeconds()));
+    return user;
   }
 
   @Get("callback")
@@ -36,6 +52,7 @@ export class AuthController {
     @Query("error_description") errorDescription: string | undefined,
     @Res() res: Response,
   ): Promise<void> {
+    this.authService.assertProvider("zitadel");
     const { sessionId } = await this.authService.handleCallback({
       code,
       state,
