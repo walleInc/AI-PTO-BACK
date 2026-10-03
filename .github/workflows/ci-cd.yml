@@ -1,0 +1,78 @@
+name: CI/CD
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-${{ github.repository }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  HUSKY: 0
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: yarn }
+      - run: yarn install --frozen-lockfile --ignore-scripts
+      - run: yarn eslint "{src,test}/**/!(*.d).ts"   # без --fix, как yarn lint
+      - run: yarn typecheck
+      - run: yarn test
+      - run: yarn build
+
+  deploy:
+    needs: check-and-build
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      DEPLOY_DIR: /srv/ptodoc/api
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Image name
+        id: image
+        run: echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.image.outputs.name }}:${{ github.sha }}
+            ${{ steps.image.outputs.name }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: SSH setup
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Upload compose file
+        run: scp deploy/docker-compose.prod.yml ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ env.DEPLOY_DIR }}/docker-compose.yml
+
+      - name: Deploy
+        env:
+          API_IMAGE: ${{ steps.image.outputs.name }}:${{ github.sha }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ssh ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "API_IMAGE='$API_IMAGE' GHCR_USER='$GHCR_USER' GHCR_TOKEN='$GHCR_TOKEN' DEPLOY_DIR='$DEPLOY_DIR' bash -s" \
+            < deploy/deploy.sh

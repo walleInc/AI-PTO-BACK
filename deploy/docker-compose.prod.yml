@@ -1,0 +1,35 @@
+# Прод-стек на VPS (/srv/ptodoc/api). Копируется CI как docker-compose.yml.
+# Секреты берутся из /srv/ptodoc/api/.env на сервере (в git не хранится), см. README.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  api:
+    image: ${API_IMAGE:?set API_IMAGE}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: "3000"
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    ports:
+      # Наружу ходит reverse proxy (api.ptodoc.space), порт слушает только localhost
+      - "127.0.0.1:${API_PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

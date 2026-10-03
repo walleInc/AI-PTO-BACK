@@ -96,6 +96,38 @@ yarn lint && yarn typecheck && yarn test
 4. `POST /api/objects/{id}/status` с `{ "status": "active" }` → `200`.
 5. `POST /api/objects/{id}/archive` под engineer → `403`; под owner → `200`, `status: archived`.
 
+## Деплой (GitHub Actions → VPS)
+
+Пайплайн `.github/workflows/ci-cd.yml`:
+- **PR в `dev` / `main`:** eslint (без `--fix`), typecheck, тесты, сборка.
+- **Push в `main`:** те же проверки, затем сборка Docker-образа, push в GHCR (`ghcr.io/<owner>/<repo>:<sha>` и `latest`), по SSH на VPS: `docker compose pull && up -d`. Миграции применяет entrypoint контейнера. Деплой считается успешным, когда `/api/auth/me` отвечает `401` (API жив), иначе в лог выводятся логи контейнера и джоба падает.
+
+Secrets репозитория: `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` (те же, что у фронта). Пароль к GHCR не нужен, используется `GITHUB_TOKEN` (в Settings → Actions → General у workflow должны быть права на запись packages).
+
+Один раз на сервере (нужен docker с compose-плагином, пользователь из `VPS_USER` в группе `docker`):
+
+```bash
+mkdir -p /srv/ptodoc/api && cd /srv/ptodoc/api
+cat > .env <<'ENVEOF'
+POSTGRES_USER=pto
+POSTGRES_PASSWORD=<сильный пароль>
+POSTGRES_DB=ai_pto
+AUTH_PROVIDER=local
+COOKIE_SECURE=true
+CORS_ORIGIN=https://ptodoc.space
+SESSION_TTL_SECONDS=86400
+# API_PORT=3000   # порт на 127.0.0.1, куда смотрит reverse proxy api.ptodoc.space
+ENVEOF
+chmod 600 .env
+```
+
+`docker-compose.yml` на сервер копирует CI (из `deploy/docker-compose.prod.yml`). Для `AUTH_PROVIDER=zitadel` добавь в `.env` переменные `ZITADEL_*`, а файл ключа смонтируй в контейнер. Первого пользователя заводим после первого деплоя:
+
+```bash
+cd /srv/ptodoc/api
+docker compose exec api yarn user:create --email you@example.com --password '...' --name 'Имя' --org-slug acme --role owner
+```
+
 ## Переменные окружения
 
 | Переменная | Где нужна | Пример / значение |
