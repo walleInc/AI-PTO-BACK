@@ -172,12 +172,42 @@ model User {
   lastLoginAt  TimestamptzString?
 
   memberships      Membership[]
+  sessions         Session[]
   createdObjects   ConstructionObject[] @relation("ObjectCreatedBy")
   createdPackages  Package[] @relation("PackageCreatedBy")
   findingDecisions Finding[] @relation("FindingDecidedBy")
   findingHistory   FindingHistory[]
   createdReports   Report[] @relation("ReportCreatedBy")
   auditLogs        AuditLog[]
+}
+
+// Opaque-сессия: в cookie лежит случайный токен, в БД только его SHA-256.
+// Роль и организация не хранятся здесь, а берутся из живого Membership на каждом запросе.
+model Session {
+  id         Uuid @id @default(uuid())
+  tokenHash  String @unique
+  userId     Uuid
+  createdAt  TimestamptzString @default(now())
+  lastSeenAt TimestamptzString @default(now())
+  expiresAt  TimestamptzString
+  revokedAt  TimestamptzString?
+  userAgent  String?
+  ip         String?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// Одноразовый PKCE-state для входа через ZITADEL (раньше лежал в Redis).
+model OidcState {
+  state        String @id
+  codeVerifier String
+  createdAt    TimestamptzString @default(now())
+  expiresAt    TimestamptzString
+
+  @@index([expiresAt])
 }
 
 model Membership {
