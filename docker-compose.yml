@@ -35,6 +35,7 @@ services:
       # Inside the compose network use service hostname `postgres` and container port 5432
       DATABASE_URL: postgresql://pto:pto@postgres:5432/ai_pto
       REDIS_URL: redis://redis:6379
+      AUTH_PROVIDER: ${AUTH_PROVIDER:-zitadel}
     depends_on:
       postgres:
         condition: service_healthy
