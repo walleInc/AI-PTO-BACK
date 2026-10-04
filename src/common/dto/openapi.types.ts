@@ -57,6 +57,29 @@ export interface User {
 /** Alias for stage-1 OpenAPI `Me`. */
 export type Me = User;
 
+export type EmployeeStatus = "active";
+
+export interface Employee {
+  id: string;
+  email: string;
+  name: string;
+  organizationId: string;
+  role: "engineer";
+  status: EmployeeStatus;
+}
+
+export interface EmployeeCreate {
+  email: string;
+  name: string;
+  password: string;
+}
+
+export interface EmployeeUpdate {
+  email?: string;
+  name?: string;
+  password?: string;
+}
+
 export interface ProtectedResponse {
   ok: boolean;
   user: User;

@@ -9,6 +9,7 @@ servers:
   - url: /api
 tags:
   - name: Auth
+  - name: Employees
   - name: Objects
   - name: Packages
   - name: Documents
@@ -53,6 +54,106 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Me"
+  /employees:
+    get:
+      tags: [Employees]
+      operationId: listEmployees
+      summary: Список инженеров организации
+      description: Активные инженеры организации текущего membership. Owner и Engineer.
+      responses:
+        "200":
+          description: Список инженеров
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Employee"
+        "401":
+          description: Нет сессии
+    post:
+      tags: [Employees]
+      operationId: createEmployee
+      summary: Создать инженера
+      description: User+Membership active/engineer. Только Owner.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmployeeCreate"
+      responses:
+        "201":
+          description: Создан
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Employee"
+        "400":
+          description: Ошибка валидации
+        "403":
+          description: Не Owner
+        "409":
+          description: Email занят
+  /employees/{employeeId}:
+    parameters:
+      - $ref: "#/components/parameters/EmployeeId"
+    get:
+      tags: [Employees]
+      operationId: getEmployee
+      summary: Карточка инженера
+      description: Только Owner.
+      responses:
+        "200":
+          description: Инженер
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Employee"
+        "403":
+          description: Не Owner
+        "404":
+          description: Не найден в организации или не активный инженер
+    patch:
+      tags: [Employees]
+      operationId: updateEmployee
+      summary: Изменить инженера
+      description: Частичное обновление. Только Owner.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmployeeUpdate"
+      responses:
+        "200":
+          description: Обновлён
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Employee"
+        "400":
+          description: Ошибка валидации
+        "403":
+          description: Не Owner
+        "404":
+          description: Не найден
+        "409":
+          description: Email занят
+    delete:
+      tags: [Employees]
+      operationId: deleteEmployee
+      summary: Soft-delete инженера
+      description: |
+        User.status=disabled, Membership.status=disabled, сессии отозваны.
+        Только Owner. Ответ 204.
+      responses:
+        "204":
+          description: Отключён
+        "403":
+          description: Не Owner
+        "404":
+          description: Не найден
   /object-types:
     get:
       tags: [Objects]
@@ -339,6 +440,11 @@ paths:
           description: Отчёт ещё не ready
 components:
   parameters:
+    EmployeeId:
+      name: employeeId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
     ObjectId:
       name: objectId
       in: path
@@ -365,6 +471,34 @@ components:
         role:
           type: string
           enum: [owner, engineer]
+    Employee:
+      type: object
+      required: [id, email, name, organizationId, role, status]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        name: { type: string }
+        organizationId: { type: string, format: uuid }
+        role:
+          type: string
+          enum: [engineer]
+        status:
+          type: string
+          enum: [active]
+    EmployeeCreate:
+      type: object
+      required: [email, name, password]
+      properties:
+        email: { type: string, format: email }
+        name: { type: string, minLength: 1 }
+        password: { type: string, minLength: 8 }
+    EmployeeUpdate:
+      type: object
+      description: Хотя бы одно поле обязательно
+      properties:
+        email: { type: string, format: email }
+        name: { type: string, minLength: 1 }
+        password: { type: string, minLength: 8 }
     ObjectWrite:
       type: object
       required: [code, name, objectTypeId, workTypeIds]
