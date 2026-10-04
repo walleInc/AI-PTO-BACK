@@ -15,14 +15,17 @@ function setup(opts: {
 }) {
   const sessionUpdate = jest.fn().mockResolvedValue(undefined);
   const sessionCreate = jest.fn().mockResolvedValue(undefined);
-  const session = opts.session === null ? null : {
-    id: "s1",
-    userId: "u1",
-    revokedAt: null,
-    expiresAt: new Date(Date.now() + 3_600_000).toISOString(),
-    lastSeenAt: new Date().toISOString(),
-    ...opts.session,
-  };
+  const session =
+    opts.session === null
+      ? null
+      : {
+          id: "s1",
+          userId: "u1",
+          revokedAt: null,
+          expiresAt: new Date(Date.now() + 3_600_000).toISOString(),
+          lastSeenAt: new Date().toISOString(),
+          ...opts.session,
+        };
   const user = opts.user === undefined ? activeUser : opts.user;
   const db = {
     orm: {
@@ -76,10 +79,7 @@ describe("SessionService", () => {
     ["deleted user", { user: null }],
     ["blocked user", { user: { ...activeUser, status: "disabled" } }],
     ["no active membership", { memberships: [] }],
-    [
-      "suspended organization",
-      { memberships: [{ ...activeMembership, organization: { status: "suspended" } }] },
-    ],
+    ["suspended organization", { memberships: [{ ...activeMembership, organization: { status: "suspended" } }] }],
   ])("rejects %s", async (_label, opts) => {
     const { service } = setup(opts);
     await expect(service.getSessionUser("tok")).resolves.toBeNull();
@@ -100,5 +100,27 @@ describe("SessionService", () => {
     await service.revokeSession("tok");
     expect(db.orm.public.Session.where).toHaveBeenCalledWith({ tokenHash: hashSessionToken("tok") });
     expect(sessionUpdate).toHaveBeenCalledWith({ revokedAt: expect.any(String) });
+  });
+
+  it("revokes all active sessions for a user", async () => {
+    const update = jest.fn().mockResolvedValue(undefined);
+    const whereInner = jest.fn(() => ({ update }));
+    const where = jest.fn(() => ({ where: whereInner, first: jest.fn(), update }));
+    const db = {
+      orm: {
+        public: {
+          Session: { where, create: jest.fn() },
+          User: { where: jest.fn() },
+          Membership: { where: jest.fn() },
+        },
+      },
+    } as unknown as AppDb;
+    const service = new SessionService(db);
+
+    await service.revokeAllSessionsForUser("u1");
+
+    expect(where).toHaveBeenCalledWith({ userId: "u1" });
+    expect(whereInner).toHaveBeenCalledWith(expect.any(Function));
+    expect(update).toHaveBeenCalledWith({ revokedAt: expect.any(String) });
   });
 });

@@ -92,6 +92,14 @@ export class SessionService {
     }).update({ revokedAt: new Date().toISOString() });
   }
 
+  /** Revoke every non-revoked session for a user (e.g. after soft-delete). */
+  async revokeAllSessionsForUser(userId: string): Promise<void> {
+    const now = new Date().toISOString();
+    await this.db.orm.public.Session.where({ userId })
+      .where((s) => s.revokedAt.isNull())
+      .update({ revokedAt: now });
+  }
+
   async saveOidcState(state: string, payload: OidcPendingState): Promise<void> {
     const now = new Date();
     await this.db.orm.public.OidcState.where((s) => s.expiresAt.lt(now.toISOString())).delete();
