@@ -4,13 +4,14 @@ const RULE_ID_PATTERN = /^[a-z0-9]+(\.[a-z0-9]+(-[a-z0-9]+)*)+$/;
 const SEMVER_PATTERN = /^\d+\.\d+\.\d+$/;
 
 export class RuleRegistry {
-  private readonly rules = new Map<string, Rule<any>>();
+  private readonly rules = new Map<string, Rule<unknown>>();
 
-  constructor(rules: Rule<any>[] = []) {
+  constructor(rules: Rule<never>[] = []) {
     for (const rule of rules) this.register(rule);
   }
 
-  register(rule: Rule<any>): this {
+  /** Контексты у правил разные (документ, пакет), поэтому реестр принимает правило с любым Ctx. */
+  register<Ctx>(rule: Rule<Ctx>): this {
     if (!RULE_ID_PATTERN.test(rule.id)) {
       throw new Error(`Некорректный id правила "${rule.id}": ожидается формат "область.имя-правила"`);
     }
@@ -24,12 +25,15 @@ export class RuleRegistry {
     return this;
   }
 
-  get(id: string): Rule<any> | undefined {
+  get<Ctx = unknown>(id: string): Rule<Ctx> | undefined {
     return this.rules.get(id);
   }
 
-  /** Правила в стабильном порядке (по id), опционально только нужной области. */
-  list(scope?: RuleScope): Rule<any>[] {
+  /**
+   * Правила в стабильном порядке (по id), опционально только нужной области.
+   * Ctx задаёт вызывающий: он знает, какой контекст соответствует выбранной области.
+   */
+  list<Ctx = unknown>(scope?: RuleScope): Rule<Ctx>[] {
     return [...this.rules.values()]
       .filter((rule) => scope === undefined || rule.scope === scope)
       .sort((a, b) => a.id.localeCompare(b.id));
