@@ -47,7 +47,7 @@ export const WORK_TYPE_SEEDS: RefSeed[] = [
 // unknown сидируется неактивным: тип нужен как FK для неклассифицированных
 // документов, но не должен предлагаться пользователю при загрузке.
 export const DOCUMENT_TYPE_SEEDS: RefSeed[] = [
-  { code: "aosr", name: "АОСР", description: "Акт о приемке выполненных работ" },
+  { code: "aosr", name: "АОСР", description: "Акт освидетельствования скрытых работ" },
   { code: "general_work_log", name: "Общий журнал работ", description: "Выписка из общего журнала работ" },
   { code: "concrete_log", name: "Журнал бетонных работ", description: "Выписка из журнала бетонных работ" },
   { code: "welding_log", name: "Журнал сварочных работ", description: "Выписка из журнала сварочных работ" },
