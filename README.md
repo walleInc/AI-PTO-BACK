@@ -101,7 +101,25 @@ curl -b cookies.txt http://localhost:3000/api/employees
 | `POST`          | `/api/objects/{id}/status`  | Автомат статусов; запретный переход → 409       |
 | `POST`          | `/api/objects/{id}/archive` | Только роль `owner`; engineer → 403             |
 
-Для create/update в БД нужны сиды справочников (`ObjectType`, `WorkType`, counterparties) и строка `User` с `id` = OIDC `sub` (`createdById`). Сидов в репозитории пока нет — без них справочники вернут `[]`, а create упадёт на FK.
+Для create/update нужны сиды справочников (`ObjectType`, `WorkType`; см. «Сиды справочников» ниже) и пользователь с активным membership (`yarn user:create`, см. Auth). Без сидов справочники вернут `[]`, а create упадёт на FK. Организации-контрагенты (`/api/counterparties`) сидами не создаются.
+
+## Сиды справочников
+
+```bash
+yarn db:seed   # нужен DATABASE_URL (корневой .env), миграции применены; Node ≥ 22.18
+```
+
+Заполняет `ObjectGroup`, `ObjectType`, `WorkType`, `DocumentType` по канону
+`docs/AI-PTO_Project_Documentation_v0.2.md` (п. 2): группы `residential` / `industrial`,
+типы `apartment_building` / `production_building`, 5 видов работ, 9 типов документов.
+Код — `src/prisma/seed.ts`, тесты — `src/prisma/seed.spec.ts`.
+
+Скрипт идемпотентен: повторный запуск не создаёт дубликатов, а расходящиеся поля
+(name / description / active) приводит к канону. Тип документа `unknown` сидируется
+неактивным — он нужен как FK для неклассифицированных документов и не должен
+предлагаться при загрузке. Организации и пользователей скрипт не создаёт.
+
+Порядок для пустой базы: миграции → `yarn db:seed` → `yarn user:create`.
 
 ## Проверка
 
