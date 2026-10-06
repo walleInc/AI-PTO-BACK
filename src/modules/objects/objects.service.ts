@@ -173,7 +173,8 @@ export class ObjectsService {
         description: body.description ?? null,
       });
 
-      await tx.orm.public.ObjectWorkType.where({ objectId }).delete();
+      // `.delete()` у этого ORM удаляет одну строку, для всех связей нужен `.deleteAll()`.
+      await tx.orm.public.ObjectWorkType.where({ objectId }).deleteAll();
       for (const workTypeId of uniqueIds(body.workTypeIds)) {
         await tx.orm.public.ObjectWorkType.create({
           id: randomUUID(),
@@ -195,11 +196,7 @@ export class ObjectsService {
     return this.getObject(user, objectId);
   }
 
-  async changeStatus(
-    user: User,
-    objectId: string,
-    body: ObjectStatusChange,
-  ): Promise<ConstructionObject> {
+  async changeStatus(user: User, objectId: string, body: ObjectStatusChange): Promise<ConstructionObject> {
     const existing = await this.loadObjectOrThrow(user.organizationId, objectId);
     const next = body.status;
 
@@ -372,10 +369,7 @@ export class ObjectsService {
     await this.assertCounterparty(contractorOrganizationId, "contractorOrganizationId");
   }
 
-  private async assertCounterparty(
-    organizationId: string | null | undefined,
-    field: string,
-  ): Promise<void> {
+  private async assertCounterparty(organizationId: string | null | undefined, field: string): Promise<void> {
     if (!organizationId) {
       return;
     }
@@ -392,11 +386,7 @@ export class ObjectsService {
     }
   }
 
-  private async assertCodeAvailable(
-    organizationId: string,
-    code: string,
-    excludeObjectId?: string,
-  ): Promise<void> {
+  private async assertCodeAvailable(organizationId: string, code: string, excludeObjectId?: string): Promise<void> {
     const existing = await this.db.orm.public.ConstructionObject.where({
       organizationId,
       code,

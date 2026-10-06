@@ -1,9 +1,4 @@
-import {
-  ConflictException,
-  ForbiddenException,
-  NotFoundException,
-  UnprocessableEntityException,
-} from "@nestjs/common";
+import { ConflictException, ForbiddenException, NotFoundException, UnprocessableEntityException } from "@nestjs/common";
 import { ObjectsService } from "./objects.service.js";
 import type { User } from "../../common/dto/openapi.types.js";
 
@@ -20,6 +15,7 @@ function chainable(result: unknown) {
     "create",
     "update",
     "delete",
+    "deleteAll",
   ]) {
     api[method] = jest.fn(self);
   }
@@ -28,6 +24,7 @@ function chainable(result: unknown) {
   api.create = jest.fn((row: unknown) => Promise.resolve(row));
   api.update = jest.fn((row: unknown) => Promise.resolve(row));
   api.delete = jest.fn(() => Promise.resolve({ affectedRows: 1 }));
+  api.deleteAll = jest.fn(() => Promise.resolve([]));
   return api;
 }
 
@@ -154,16 +151,16 @@ describe("ObjectsService", () => {
 
   it("forbids engineer from archiving", async () => {
     constructionObject.first.mockResolvedValue(makeObjectRow({ status: "active" }));
-    await expect(
-      service.archiveObject(engineer, "11111111-1111-1111-1111-111111111111"),
-    ).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(service.archiveObject(engineer, "11111111-1111-1111-1111-111111111111")).rejects.toBeInstanceOf(
+      ForbiddenException,
+    );
   });
 
   it("rejects second archive with 409", async () => {
     constructionObject.first.mockResolvedValue(makeObjectRow({ status: "archived" }));
-    await expect(
-      service.archiveObject(owner, "11111111-1111-1111-1111-111111111111"),
-    ).rejects.toBeInstanceOf(ConflictException);
+    await expect(service.archiveObject(owner, "11111111-1111-1111-1111-111111111111")).rejects.toBeInstanceOf(
+      ConflictException,
+    );
   });
 
   it("rejects editing archived object with 409", async () => {
@@ -176,6 +173,25 @@ describe("ObjectsService", () => {
         workTypeIds: ["wt-1"],
       }),
     ).rejects.toBeInstanceOf(ConflictException);
+  });
+
+  it("replaces all work type links on update with deleteAll", async () => {
+    const objectId = "11111111-1111-1111-1111-111111111111";
+    constructionObject.first.mockResolvedValue(makeObjectRow({ status: "draft" }));
+    objectType.first.mockResolvedValue({ id: "type-1", active: true });
+    workType.all.mockResolvedValue([{ id: "wt-1" }, { id: "wt-2" }]);
+
+    await service.updateObject(engineer, objectId, {
+      code: "OBJ-1",
+      name: "Объект 1",
+      objectTypeId: "type-1",
+      workTypeIds: ["wt-1", "wt-2", "wt-1"],
+    });
+
+    // `.delete()` у ORM удаляет одну строку: старые связи должны сниматься через `.deleteAll()`.
+    expect(objectWorkType.deleteAll).toHaveBeenCalledTimes(1);
+    expect(objectWorkType.delete).not.toHaveBeenCalled();
+    expect(objectWorkType.create).toHaveBeenCalledTimes(2);
   });
 
   it("hides archived objects unless includeArchived=true", async () => {

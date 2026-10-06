@@ -1,28 +1,16 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  Param,
-  ParseUUIDPipe,
-  Patch,
-  Post,
-  Query,
-  UseGuards,
-} from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { CurrentUser } from "../../common/decorators/current-user.decorator.js";
 import type {
   ConstructionObject,
   Counterparty,
   ListObjectsQuery,
-  ObjectStatusChange,
   ObjectType,
-  ObjectWrite,
   User,
   WorkType,
 } from "../../common/dto/openapi.types.js";
 import { Roles, RolesGuard } from "../../common/guards/roles.guard.js";
 import { SessionGuard } from "../auth/session.guard.js";
+import { parseObjectStatusChange, parseObjectWrite } from "./object.dto.js";
 import { ObjectsService } from "./objects.service.js";
 
 @Controller("object-types")
@@ -64,17 +52,14 @@ export class ObjectsController {
   constructor(private readonly objectsService: ObjectsService) {}
 
   @Get()
-  listObjects(
-    @CurrentUser() user: User,
-    @Query() query: ListObjectsQuery,
-  ): Promise<ConstructionObject[]> {
+  listObjects(@CurrentUser() user: User, @Query() query: ListObjectsQuery): Promise<ConstructionObject[]> {
     return this.objectsService.listObjects(user, query);
   }
 
   @Post()
   @HttpCode(201)
-  createObject(@CurrentUser() user: User, @Body() body: ObjectWrite): Promise<ConstructionObject> {
-    return this.objectsService.createObject(user, body);
+  createObject(@CurrentUser() user: User, @Body() body: unknown): Promise<ConstructionObject> {
+    return this.objectsService.createObject(user, parseObjectWrite(body));
   }
 
   @Get(":objectId")
@@ -89,18 +74,18 @@ export class ObjectsController {
   updateObject(
     @CurrentUser() user: User,
     @Param("objectId", ParseUUIDPipe) objectId: string,
-    @Body() body: ObjectWrite,
+    @Body() body: unknown,
   ): Promise<ConstructionObject> {
-    return this.objectsService.updateObject(user, objectId, body);
+    return this.objectsService.updateObject(user, objectId, parseObjectWrite(body));
   }
 
   @Post(":objectId/status")
   changeStatus(
     @CurrentUser() user: User,
     @Param("objectId", ParseUUIDPipe) objectId: string,
-    @Body() body: ObjectStatusChange,
+    @Body() body: unknown,
   ): Promise<ConstructionObject> {
-    return this.objectsService.changeStatus(user, objectId, body);
+    return this.objectsService.changeStatus(user, objectId, parseObjectStatusChange(body));
   }
 
   @Post(":objectId/archive")

@@ -102,7 +102,7 @@ export class SessionService {
 
   async saveOidcState(state: string, payload: OidcPendingState): Promise<void> {
     const now = new Date();
-    await this.db.orm.public.OidcState.where((s) => s.expiresAt.lt(now.toISOString())).delete();
+    await this.db.orm.public.OidcState.where((s) => s.expiresAt.lt(now.toISOString())).deleteAll();
     await this.db.orm.public.OidcState.create({
       state,
       codeVerifier: payload.codeVerifier,
