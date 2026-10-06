@@ -169,8 +169,11 @@ export interface Package {
   objectId: string;
   version: number;
   status: PackageStatus;
-  progress?: number;
+  progress: number;
+  documentsCount?: number;
+  findings?: SeverityCounts;
   createdAt: string;
+  finishedAt?: string | null;
 }
 
 export interface PackageCreated {
@@ -178,7 +181,8 @@ export interface PackageCreated {
   uploads: Array<{
     documentId: string;
     fileName: string;
-    uploadUrl: string;
+    uploadUrl: string | null;
+    headers: Record<string, string>;
     expiresAt: string;
     duplicateOf?: string | null;
   }>;
