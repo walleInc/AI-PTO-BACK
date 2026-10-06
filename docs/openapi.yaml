@@ -14,12 +14,29 @@ info:
     ## Как устроен процесс
 
     1. `POST /objects/{objectId}/packages` создаёт пакет и возвращает ссылки для загрузки файлов.
-    2. Клиент загружает каждый файл по `uploadUrl` (PUT).
-    3. `POST /packages/{packageId}/start` запускает обработку.
+    2. Клиент загружает каждый файл по `url` (PUT) напрямую в хранилище.
+    3. `POST /packages/{packageId}/start` проверяет, что все файлы на месте, и запускает обработку.
+       Отдельного запроса «загрузка завершена» нет.
     4. Прогресс приходит по SSE (`GET /packages/{packageId}/events`) или через `GET /packages/{packageId}`.
     5. Результаты читаются из `documents`, `findings`, `checklist`.
+
+    Документы обрабатываются независимо: документ в статусе `done` можно открывать (поля,
+    замечания), не дожидаясь остальных файлов пакета. Ошибка одного файла не останавливает
+    пакет, он завершается со статусом `partial`.
     6. Инженер принимает решения по замечаниям (`PATCH /findings/{findingId}`).
     7. `POST /packages/{packageId}/reports` формирует PDF-отчёт для подрядчика.
+
+    ## Авторизация и роли
+
+    Вход по email и паролю (`POST /auth/login`), сессия в HttpOnly cookie `ai_pto_session`.
+    Организация и роль берутся из активного membership и перечитываются на каждом запросе.
+    Роли: `owner` (владелец организации) и `engineer`. Архивировать объект может только `owner`.
+    Все выборки ограничены организацией текущего пользователя.
+
+    ## Объекты
+
+    У одного исполнителя ожидаются единицы и десятки объектов, поэтому `GET /objects` возвращает
+    весь список без пагинации, а поиск, фильтры и сортировку клиент делает сам.
 
     ## Этапы обработки
 
@@ -29,7 +46,6 @@ info:
     ## Открытые вопросы (x-draft)
 
     - Формат `bbox` в `SourceRef`: сейчас доли страницы 0..1 от верхнего левого угла.
-    - Механизм авторизации выбирается `AUTH_PROVIDER`: `zitadel` (OIDC Authorization Code + PKCE) или `local` (email/пароль из БД). Сессия в обоих случаях в HttpOnly cookie `ai_pto_session`.
     - SSE или WebSocket для прогресса: сейчас описан SSE.
     - Полный список типов документов (`DocumentType`) уточнить по документации.
   contact:
@@ -60,12 +76,12 @@ paths:
     post:
       tags: [Auth]
       operationId: loginWithPassword
-      summary: Вход по email и паролю (AUTH_PROVIDER=local)
+      summary: Вход по email и паролю
       security: []
       description: |
-        Доступен только при `AUTH_PROVIDER=local`, иначе `404`. Проверяет учётные данные,
-        создаёт серверную сессию в PostgreSQL и выставляет HttpOnly cookie `ai_pto_session`.
-        Организация и роль берутся из активного membership пользователя и перечитываются на каждом запросе.
+        Проверяет учётные данные, создаёт серверную сессию в PostgreSQL и выставляет
+        HttpOnly cookie `ai_pto_session`. Организация и роль берутся из активного
+        membership пользователя и перечитываются на каждом запросе.
       requestBody:
         required: true
         content:
@@ -87,59 +103,6 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example: { code: invalid_credentials, message: Неверный email или пароль }
-        "404": { $ref: "#/components/responses/NotFound" }
-    get:
-      tags: [Auth]
-      operationId: login
-      summary: Начать OIDC вход (redirect на ZITADEL)
-      security: []
-      description: |
-        Доступен только при `AUTH_PROVIDER=zitadel` (по умолчанию), иначе `404`.
-        Генерирует PKCE challenge, сохраняет state в PostgreSQL и перенаправляет браузер
-        на Authorization Endpoint ZITADEL (Authorization Code Flow + PKCE).
-      responses:
-        "302":
-          description: Redirect на ZITADEL login
-          headers:
-            Location:
-              schema: { type: string, format: uri }
-
-  /auth/callback:
-    get:
-      tags: [Auth]
-      operationId: authCallback
-      summary: OIDC callback (обмен code на сессию)
-      security: []
-      description: |
-        Обменивает authorization code на токены у ZITADEL, создаёт серверную сессию
-        в PostgreSQL и выставляет HttpOnly cookie `ai_pto_session`, затем redirect на `/auth/me`.
-      parameters:
-        - name: code
-          in: query
-          required: true
-          schema: { type: string }
-        - name: state
-          in: query
-          required: true
-          schema: { type: string }
-        - name: error
-          in: query
-          required: false
-          schema: { type: string }
-        - name: error_description
-          in: query
-          required: false
-          schema: { type: string }
-      responses:
-        "302":
-          description: Успех — Set-Cookie и redirect на `/auth/me`
-          headers:
-            Location:
-              schema: { type: string, format: uri }
-            Set-Cookie:
-              schema: { type: string }
-        "400": { $ref: "#/components/responses/ValidationError" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
 
   /auth/logout:
     post:
@@ -180,6 +143,22 @@ paths:
               schema: { $ref: "#/components/schemas/ProtectedResponse" }
         "401": { $ref: "#/components/responses/Unauthorized" }
 
+  /object-types:
+    get:
+      tags: [Objects]
+      operationId: listObjectTypes
+      summary: Справочник типов объектов
+      description: Активные типы вместе с группой.
+      responses:
+        "200":
+          description: Список типов объектов
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ObjectType" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
   /work-types:
     get:
       tags: [Objects]
@@ -196,47 +175,53 @@ paths:
                 items: { $ref: "#/components/schemas/WorkType" }
         "401": { $ref: "#/components/responses/Unauthorized" }
 
+  /counterparties:
+    get:
+      tags: [Objects]
+      operationId: listCounterparties
+      summary: Справочник контрагентов
+      description: Организации `kind=counterparty` для полей «заказчик» и «подрядчик».
+      responses:
+        "200":
+          description: Список контрагентов
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Counterparty" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
   /objects:
     get:
       tags: [Objects]
       operationId: listObjects
       summary: Список объектов
+      description: |
+        Все объекты текущей организации одним массивом, без пагинации.
+        Архивные не возвращаются, пока не передан `includeArchived=true`.
       parameters:
-        - $ref: "#/components/parameters/Page"
-        - $ref: "#/components/parameters/PageSize"
-        - name: q
+        - name: includeArchived
           in: query
-          description: Поиск по названию, адресу, подрядчику
-          schema: { type: string }
-        - name: sort
-          in: query
-          schema:
-            type: string
-            enum: [name, -name, readiness, -readiness, lastCheckedAt, -lastCheckedAt]
-            default: -lastCheckedAt
+          schema: { type: boolean, default: false }
       responses:
         "200":
-          description: Страница объектов
+          description: Объекты
           content:
             application/json:
               schema:
-                type: object
-                required: [items, meta]
-                properties:
-                  items:
-                    type: array
-                    items: { $ref: "#/components/schemas/ConstructionObject" }
-                  meta: { $ref: "#/components/schemas/PageMeta" }
+                type: array
+                items: { $ref: "#/components/schemas/ConstructionObject" }
         "401": { $ref: "#/components/responses/Unauthorized" }
     post:
       tags: [Objects]
       operationId: createObject
       summary: Создать объект
+      description: Объект создаётся в статусе `draft`. `code` уникален внутри организации.
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/ObjectInput" }
+            schema: { $ref: "#/components/schemas/ObjectWrite" }
       responses:
         "201":
           description: Объект создан
@@ -244,6 +229,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/ConstructionObject" }
         "401": { $ref: "#/components/responses/Unauthorized" }
+        "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/ValidationError" }
 
   /objects/{objectId}:
@@ -253,37 +239,80 @@ paths:
       tags: [Objects]
       operationId: getObject
       summary: Объект
+      description: Чужой и несуществующий id отвечают одинаково — 404.
       responses:
         "200":
           description: Объект
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ConstructionObject" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
         "404": { $ref: "#/components/responses/NotFound" }
     patch:
       tags: [Objects]
       operationId: updateObject
       summary: Изменить объект
+      description: Те же поля, что при создании. Архивный объект не редактируется (409).
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: "#/components/schemas/ObjectUpdate" }
+            schema: { $ref: "#/components/schemas/ObjectWrite" }
       responses:
         "200":
           description: Объект обновлён
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ConstructionObject" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
         "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/ValidationError" }
-    delete:
+
+  /objects/{objectId}/status:
+    parameters:
+      - $ref: "#/components/parameters/ObjectId"
+    post:
       tags: [Objects]
-      operationId: deleteObject
-      summary: Удалить объект
+      operationId: changeObjectStatus
+      summary: Сменить статус объекта
+      description: |
+        Допустимые переходы: `draft → active`, `active → on_hold`, `on_hold → active`,
+        `active → completed`, `on_hold → completed`. Из `archived` перехода нет.
+        При переходе в `completed` пустая `actualEndDate` заполняется текущей датой.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ObjectStatusChange" }
       responses:
-        "204": { description: Объект удалён }
+        "200":
+          description: Статус изменён
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConstructionObject" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
         "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /objects/{objectId}/archive:
+    parameters:
+      - $ref: "#/components/parameters/ObjectId"
+    post:
+      tags: [Objects]
+      operationId: archiveObject
+      summary: Архивировать объект
+      description: Только роль `owner`. Файлы сохраняются. Повторная архивация — 409.
+      responses:
+        "200":
+          description: Объект в статусе `archived`
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConstructionObject" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
 
   /objects/{objectId}/summary:
     parameters:
@@ -326,8 +355,10 @@ paths:
       summary: Создать пакет и получить ссылки для загрузки
       description: |
         Принимает описание файлов, создаёт `Package` и `Document` для каждого файла
-        и возвращает временные ссылки для загрузки в хранилище.
-        Дубликаты по `sha256` помечаются в ответе (`duplicateOf`), повторно не загружаются.
+        и возвращает временные ссылки для загрузки в хранилище (PUT с тем же `mimeType`).
+        Если передан `sha256` и такой файл уже есть в организации, в ответе будет `duplicateOf`
+        и `url: null`: файл повторно не загружается и не обрабатывается, его результаты берутся
+        у исходного документа.
       requestBody:
         required: true
         content:
@@ -375,7 +406,11 @@ paths:
       tags: [Packages]
       operationId: startPackage
       summary: Запустить обработку
-      description: Вызывается после того, как все файлы загружены. Идемпотентен.
+      description: |
+        Вызывается после того, как все файлы загружены. Проверяет, что каждый объект есть
+        в хранилище (а при переданном `sha256` — что хеш совпадает), и ставит документы в очередь.
+        Дубликаты (`duplicateOf`) не ждёт. Идемпотентен. Отдельного подтверждения загрузки
+        по каждому файлу нет.
       responses:
         "202":
           description: Обработка поставлена в очередь
@@ -384,7 +419,7 @@ paths:
               schema: { $ref: "#/components/schemas/Package" }
         "404": { $ref: "#/components/responses/NotFound" }
         "409":
-          description: Не все файлы загружены
+          description: Не все файлы загружены или хеш не совпал
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
@@ -396,12 +431,17 @@ paths:
       tags: [Packages]
       operationId: streamPackageEvents
       summary: Поток событий обработки (SSE)
-      x-draft: true
       description: |
-        Server-Sent Events. Соединение остаётся открытым до завершения пакета.
-        Каждое событие содержит JSON по схеме `PackageEvent`. Имя события (`event:`) совпадает
-        с полем `type`. При подключении сервер сначала отправляет `package.snapshot`
-        с текущим состоянием. Авторизация — cookie-сессия `ai_pto_session`
+        Server-Sent Events. Имя события (`event:`) совпадает с полем `type`:
+
+        - `progress` — изменился статус или общий прогресс пакета. При подключении сервер
+          сразу отправляет текущее состояние.
+        - `document.stage` — изменился статус этапа конкретного документа. Позволяет показывать
+          документ готовым и открывать его результаты, не дожидаясь остальных файлов.
+
+        Соединение закрывается, когда пакет перешёл в `done`, `partial` или `failed`.
+        Истина о пакете и документах — `GET /packages/{packageId}`, события только ускоряют
+        обновление интерфейса. Авторизация — cookie-сессия `ai_pto_session`
         (браузерный `EventSource` отправляет cookies same-origin автоматически).
       responses:
         "200":
@@ -431,7 +471,7 @@ paths:
               schema: { $ref: "#/components/schemas/Report" }
         "404": { $ref: "#/components/responses/NotFound" }
         "409":
-          description: Обработка пакета ещё не завершена
+          description: Часть документов пакета ещё в обработке
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
@@ -772,7 +812,10 @@ paths:
       tags: [Checklist]
       operationId: getChecklist
       summary: Комплектность объекта
-      description: Сравнивает обязательные документы для вида работ с найденными в последнем пакете.
+      description: |
+        Комплектность считается по объекту: обязательные документы определяются видами работ
+        объекта (`workTypes`) и сравниваются с найденными документами. По умолчанию берётся
+        последний пакет, `packageId` позволяет посмотреть комплектность прошлой версии.
       parameters:
         - name: packageId
           in: query
@@ -893,6 +936,18 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
           example: { code: not_found, message: Ресурс не найден }
+    Forbidden:
+      description: Недостаточно прав
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example: { code: forbidden, message: Архивировать объект может только владелец организации }
+    Conflict:
+      description: Конфликт состояния
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example: { code: conflict, message: Переход статуса active → draft запрещён }
     ValidationError:
       description: Ошибка валидации
       content:
@@ -1009,17 +1064,13 @@ components:
       type: object
       required: [id, email, name, organizationId, role]
       properties:
-        id:
-          type: string
-          description: OIDC subject (`sub`) при ZITADEL, UUID пользователя при local
+        id: { type: string, format: uuid }
         email: { type: string, format: email }
         name: { type: string }
-        organizationId:
-          type: string
-          description: ZITADEL organization / resource owner id при ZITADEL, UUID организации при local
+        organizationId: { type: string, format: uuid }
         role:
           type: string
-          enum: [engineer, contractor]
+          enum: [owner, engineer]
 
     LoginRequest:
       type: object
@@ -1036,48 +1087,131 @@ components:
         user: { $ref: "#/components/schemas/User" }
 
     # ---------- Объекты ----------
+    ObjectStatus:
+      type: string
+      enum: [draft, active, on_hold, completed, archived]
+
+    ObjectGroupRef:
+      type: object
+      required: [id, code, name]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        name: { type: string }
+
+    ObjectType:
+      type: object
+      required: [id, code, name, group]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string, examples: [MKD] }
+        name: { type: string, examples: [Многоквартирный жилой дом] }
+        description: { type: [string, "null"] }
+        group: { $ref: "#/components/schemas/ObjectGroupRef" }
+
     WorkType:
+      type: object
+      required: [id, code, name]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string, examples: [CONCRETE] }
+        name: { type: string, examples: [Монолитные работы] }
+        description: { type: [string, "null"] }
+
+    OrganizationRef:
       type: object
       required: [id, name]
       properties:
-        id: { type: string, examples: [monolith] }
-        name: { type: string, examples: [Монолитные работы] }
+        id: { type: string, format: uuid }
+        name: { type: string }
 
-    ObjectInput:
-      type: object
-      required: [name, workTypeId]
-      properties:
-        name: { type: string, minLength: 1, maxLength: 200 }
-        address: { type: string }
-        customer: { type: string, description: Заказчик }
-        contractor: { type: string, description: Подрядчик }
-        workTypeId: { type: string }
+    Counterparty:
+      allOf:
+        - $ref: "#/components/schemas/OrganizationRef"
+        - type: object
+          required: [slug]
+          properties:
+            slug: { type: string }
 
-    ObjectUpdate:
+    ObjectWrite:
       type: object
-      minProperties: 1
+      required: [code, name, objectTypeId, workTypeIds]
       properties:
+        code: { type: string, description: Уникален внутри организации }
         name: { type: string, minLength: 1, maxLength: 200 }
-        address: { type: string }
-        customer: { type: string }
-        contractor: { type: string }
-        workTypeId: { type: string }
+        address: { type: [string, "null"] }
+        objectTypeId: { type: string, format: uuid }
+        workTypeIds:
+          type: array
+          items: { type: string, format: uuid }
+        customerOrganizationId:
+          type: [string, "null"]
+          format: uuid
+          description: Контрагент (`kind=counterparty`)
+        contractorOrganizationId:
+          type: [string, "null"]
+          format: uuid
+          description: Контрагент (`kind=counterparty`)
+        description: { type: [string, "null"] }
+        customerProfileId:
+          type: [string, "null"]
+          format: uuid
+          description: Игнорируется на этом этапе (профилей требований ещё нет)
+
+    ObjectStatusChange:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [draft, active, on_hold, completed]
 
     ConstructionObject:
-      allOf:
-        - $ref: "#/components/schemas/ObjectInput"
-        - type: object
-          required: [id, readiness, findings, createdAt]
-          properties:
-            id: { type: string, format: uuid }
-            readiness:
-              type: number
-              minimum: 0
-              maximum: 1
-              description: Готовность пакета документов, доля от 0 до 1
-            findings: { $ref: "#/components/schemas/SeverityCounts" }
-            lastCheckedAt: { type: [string, "null"], format: date-time }
-            createdAt: { type: string, format: date-time }
+      type: object
+      required:
+        [
+          id,
+          code,
+          name,
+          address,
+          status,
+          description,
+          objectType,
+          customer,
+          contractor,
+          workTypes,
+          startDate,
+          plannedEndDate,
+          actualEndDate,
+          createdAt,
+          updatedAt,
+          archivedAt,
+        ]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        name: { type: string }
+        address: { type: [string, "null"] }
+        status: { $ref: "#/components/schemas/ObjectStatus" }
+        description: { type: [string, "null"] }
+        objectType: { $ref: "#/components/schemas/ObjectType" }
+        customer:
+          oneOf:
+            - $ref: "#/components/schemas/OrganizationRef"
+            - type: "null"
+        contractor:
+          oneOf:
+            - $ref: "#/components/schemas/OrganizationRef"
+            - type: "null"
+        workTypes:
+          type: array
+          items: { $ref: "#/components/schemas/WorkType" }
+        startDate: { type: [string, "null"], format: date }
+        plannedEndDate: { type: [string, "null"], format: date }
+        actualEndDate: { type: [string, "null"], format: date }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        archivedAt: { type: [string, "null"], format: date-time }
 
     # ---------- Пакеты ----------
     PackageCreate:
@@ -1104,34 +1238,34 @@ components:
               sha256:
                 type: string
                 pattern: "^[a-f0-9]{64}$"
-                description: Хэш файла для дедупликации (необязательно)
+                description: Хэш файла. По нему определяется дубликат в организации, а `start` проверяет, что загруженный объект совпадает по хешу
 
     PackageCreated:
       type: object
-      required: [package, uploads]
+      required: [packageId, version, uploads]
       properties:
-        package: { $ref: "#/components/schemas/Package" }
+        packageId: { type: string, format: uuid }
+        version:
+          type: integer
+          minimum: 1
+          description: Порядковый номер проверки на объекте
         uploads:
           type: array
+          description: Порядок совпадает с порядком `files` в запросе
           items:
             type: object
-            required: [documentId, fileName]
+            required: [documentId, url, objectKey]
             properties:
               documentId: { type: string, format: uuid }
-              fileName: { type: string }
-              uploadUrl:
+              url:
                 type: [string, "null"]
                 format: uri
-                description: Ссылка для PUT-загрузки. Пусто, если файл дубликат.
-              headers:
-                type: object
-                additionalProperties: { type: string }
-                description: Заголовки, которые нужно передать при загрузке
-              expiresAt: { type: string, format: date-time }
+                description: Временная ссылка для PUT-загрузки в хранилище. `null`, если файл дубликат
+              objectKey: { type: [string, "null"] }
               duplicateOf:
                 type: [string, "null"]
                 format: uuid
-                description: Идентификатор уже загруженного документа с тем же хэшем
+                description: Идентификатор уже загруженного документа с тем же `sha256`
 
     Package:
       type: object
@@ -1164,58 +1298,38 @@ components:
               items: { $ref: "#/components/schemas/Document" }
 
     PackageEvent:
-      description: |
-        Событие SSE. Поле `type` совпадает с именем события.
-        - `package.snapshot`: текущее состояние при подключении
-        - `document.stage`: изменился статус этапа документа
-        - `package.progress`: изменился общий прогресс
-        - `package.done`: обработка завершена (статус `done`, `partial` или `failed`)
+      description: Событие SSE. Поле `type` совпадает с именем события.
       oneOf:
-        - $ref: "#/components/schemas/PackageSnapshotEvent"
-        - $ref: "#/components/schemas/DocumentStageEvent"
         - $ref: "#/components/schemas/PackageProgressEvent"
-        - $ref: "#/components/schemas/PackageDoneEvent"
+        - $ref: "#/components/schemas/DocumentStageEvent"
       discriminator:
         propertyName: type
         mapping:
-          package.snapshot: "#/components/schemas/PackageSnapshotEvent"
+          progress: "#/components/schemas/PackageProgressEvent"
           document.stage: "#/components/schemas/DocumentStageEvent"
-          package.progress: "#/components/schemas/PackageProgressEvent"
-          package.done: "#/components/schemas/PackageDoneEvent"
 
-    PackageSnapshotEvent:
+    PackageProgressEvent:
       type: object
-      required: [type, package]
+      required: [type, packageId, status, progress]
       properties:
-        type: { type: string, const: package.snapshot }
-        package: { $ref: "#/components/schemas/PackageDetail" }
+        type: { type: string, const: progress }
+        packageId: { type: string, format: uuid }
+        status: { $ref: "#/components/schemas/PackageStatus" }
+        progress:
+          type: number
+          minimum: 0
+          maximum: 1
 
     DocumentStageEvent:
       type: object
-      required: [type, documentId, stage, status]
+      required: [type, packageId, documentId, stage, status]
       properties:
         type: { type: string, const: document.stage }
+        packageId: { type: string, format: uuid }
         documentId: { type: string, format: uuid }
         stage: { $ref: "#/components/schemas/Stage" }
         status: { $ref: "#/components/schemas/StageStatus" }
         error: { $ref: "#/components/schemas/StageError" }
-
-    PackageProgressEvent:
-      type: object
-      required: [type, progress]
-      properties:
-        type: { type: string, const: package.progress }
-        progress: { type: number, minimum: 0, maximum: 1 }
-
-    PackageDoneEvent:
-      type: object
-      required: [type, status]
-      properties:
-        type: { type: string, const: package.done }
-        status:
-          type: string
-          enum: [done, partial, failed]
-        findings: { $ref: "#/components/schemas/SeverityCounts" }
 
     # ---------- Документы ----------
     StageError:
