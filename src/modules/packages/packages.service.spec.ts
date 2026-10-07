@@ -6,6 +6,7 @@ import {
   UnsupportedMediaTypeException,
 } from "@nestjs/common";
 import type { User } from "../../common/dto/openapi.types.js";
+import type { DocumentQueueService } from "../../queue/document-queue.service.js";
 import type { StorageService } from "../storage/storage.service.js";
 import { PackagesService } from "./packages.service.js";
 
@@ -50,6 +51,7 @@ describe("PackagesService", () => {
   let storage: jest.Mocked<
     Pick<StorageService, "presignPut" | "objectExists" | "bucket" | "maxFileBytes" | "storageProvider">
   >;
+  let documentQueue: jest.Mocked<Pick<DocumentQueueService, "enqueueDocumentPipeline">>;
   let service: PackagesService;
 
   beforeEach(() => {
@@ -86,7 +88,11 @@ describe("PackagesService", () => {
       objectExists: jest.fn((_key: string) => Promise.resolve(true)),
     };
 
-    service = new PackagesService(db as never, storage as never);
+    documentQueue = {
+      enqueueDocumentPipeline: jest.fn((_documentId: string, _packageId: string) => Promise.resolve()),
+    };
+
+    service = new PackagesService(db as never, storage as never, documentQueue as never);
   });
 
   it("returns 404 for object outside organization", async () => {
@@ -210,9 +216,11 @@ describe("PackagesService", () => {
 
     const first = await service.startPackage(user, packageId);
     expect(first.status).toBe("queued");
+    expect(documentQueue.enqueueDocumentPipeline).toHaveBeenCalledWith("doc-1", packageId);
 
     const second = await service.startPackage(user, packageId);
     expect(second.status).toBe("queued");
     expect(db.transaction).toHaveBeenCalledTimes(1);
+    expect(documentQueue.enqueueDocumentPipeline).toHaveBeenCalledTimes(2);
   });
 });

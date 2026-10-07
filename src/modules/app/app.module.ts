@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { PrismaModule } from "../../prisma/prisma.module.js";
+import { QueueModule } from "../../queue/queue.module.js";
 import { AuthModule } from "../auth/auth.module.js";
 import { EmployeesModule } from "../employees/employees.module.js";
 import { ObjectsModule } from "../objects/objects.module.js";
@@ -12,6 +13,7 @@ import { ReportsModule } from "../reports/reports.module.js";
 @Module({
   imports: [
     PrismaModule,
+    QueueModule,
     AuthModule,
     EmployeesModule,
     ObjectsModule,
