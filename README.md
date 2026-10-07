@@ -63,20 +63,43 @@ curl -b cookies.txt http://localhost:3000/api/auth/me
 4. Браузер: [http://localhost:3000/api/auth/login](http://localhost:3000/api/auth/login) → логин ZITADEL → `/api/auth/me`.
 5. Проверка guard: `/api/protected`. Logout: `POST /api/auth/logout` с cookie `ai_pto_session`.
 
+## Employees (stage-1)
+
+Контракт: [`docs/openapi/openapi.yaml`](docs/openapi/openapi.yaml) (tag Employees). Все выборки ограничены организацией текущего membership. Работают только с инженерами (`role=engineer`); Owner через этот API не отдаётся и не меняется.
+
+| Метод    | Путь                  | Кто             | Примечание                                                                            |
+| -------- | --------------------- | --------------- | ------------------------------------------------------------------------------------- |
+| `GET`    | `/api/employees`      | owner, engineer | Активные инженеры организации                                                         |
+| `GET`    | `/api/employees/{id}` | owner           | Карточка; чужой org / disabled / owner → 404                                          |
+| `POST`   | `/api/employees`      | owner           | Тело `{ email, name, password }` (≥ 8 символов) → User+Membership `active`/`engineer` |
+| `PATCH`  | `/api/employees/{id}` | owner           | Частично: `name?`, `email?`, `password?`                                              |
+| `DELETE` | `/api/employees/{id}` | owner           | Soft-delete: `User` и `Membership` → `disabled`, сессии отозваны; ответ `204`         |
+
+Email уже занят → `409`. Engineer на мутациях и `GET` по id → `403`. Удалить себя нельзя → `403`.
+
+Пример (под cookie Owner):
+
+```bash
+curl -b cookies.txt -H 'Content-Type: application/json' \
+  -d '{"email":"new.eng@example.com","name":"Новый инженер","password":"change-me"}' \
+  http://localhost:3000/api/employees
+curl -b cookies.txt http://localhost:3000/api/employees
+```
+
 ## Objects (stage-1)
 
 Контракт: [`docs/openapi/openapi.yaml`](docs/openapi/openapi.yaml). Организация и роль берутся только из cookie-сессии, не из тела и не из query.
 
-| Метод | Путь | Примечание |
-| --- | --- | --- |
-| `GET` | `/api/object-types` | Активные типы с группой |
-| `GET` | `/api/work-types` | Активные виды работ |
-| `GET` | `/api/counterparties` | Организации `kind=counterparty` |
-| `GET` | `/api/objects` | Без `archived`, если нет `includeArchived=true` |
-| `POST` | `/api/objects` | Тело `ObjectWrite`, статус `draft` |
-| `GET` / `PATCH` | `/api/objects/{id}` | Чужой и несуществующий id → 404 |
-| `POST` | `/api/objects/{id}/status` | Автомат статусов; запретный переход → 409 |
-| `POST` | `/api/objects/{id}/archive` | Только роль `owner`; engineer → 403 |
+| Метод           | Путь                        | Примечание                                      |
+| --------------- | --------------------------- | ----------------------------------------------- |
+| `GET`           | `/api/object-types`         | Активные типы с группой                         |
+| `GET`           | `/api/work-types`           | Активные виды работ                             |
+| `GET`           | `/api/counterparties`       | Организации `kind=counterparty`                 |
+| `GET`           | `/api/objects`              | Без `archived`, если нет `includeArchived=true` |
+| `POST`          | `/api/objects`              | Тело `ObjectWrite`, статус `draft`              |
+| `GET` / `PATCH` | `/api/objects/{id}`         | Чужой и несуществующий id → 404                 |
+| `POST`          | `/api/objects/{id}/status`  | Автомат статусов; запретный переход → 409       |
+| `POST`          | `/api/objects/{id}/archive` | Только роль `owner`; engineer → 403             |
 
 Для create/update в БД нужны сиды справочников (`ObjectType`, `WorkType`, counterparties) и строка `User` с `id` = OIDC `sub` (`createdById`). Сидов в репозитории пока нет — без них справочники вернут `[]`, а create упадёт на FK.
 
@@ -90,24 +113,60 @@ yarn lint && yarn typecheck && yarn test
 
 Ручной smoke после логина (`/api/auth/me`, cookie `ai_pto_session`):
 
-1. `GET` справочники → взять `objectTypeId` и `workTypeIds`.
-2. `POST /api/objects` → `201`, `status: draft`.
-3. `GET /api/objects` → объект в списке; без флага archived не видны.
-4. `POST /api/objects/{id}/status` с `{ "status": "active" }` → `200`.
-5. `POST /api/objects/{id}/archive` под engineer → `403`; под owner → `200`, `status: archived`.
+1. Под Owner: `POST /api/employees` → `201`; `GET /api/employees` → новый инженер в списке.
+2. Под Engineer: `GET /api/employees` → `200`; `POST /api/employees` → `403`.
+3. `GET` справочники → взять `objectTypeId` и `workTypeIds`.
+4. `POST /api/objects` → `201`, `status: draft`.
+5. `GET /api/objects` → объект в списке; без флага archived не видны.
+6. `POST /api/objects/{id}/status` с `{ "status": "active" }` → `200`.
+7. `POST /api/objects/{id}/archive` под engineer → `403`; под owner → `200`, `status: archived`.
+8. Под Owner: `DELETE /api/employees/{id}` → `204`; повторный `GET` по id → `404`, вход удалённым инженером → `401`.
+
+## Деплой (GitHub Actions → VPS)
+
+Пайплайн `.github/workflows/ci-cd.yml`:
+
+- **PR в `dev` / `main`:** eslint (без `--fix`), typecheck, тесты, сборка.
+- **Push в `main`:** те же проверки, затем сборка Docker-образа, push в GHCR (`ghcr.io/<owner>/<repo>:<sha>` и `latest`), по SSH на VPS: `docker compose pull && up -d`. Миграции применяет entrypoint контейнера. Деплой считается успешным, когда `/api/auth/me` отвечает `401` (API жив), иначе в лог выводятся логи контейнера и джоба падает.
+
+Secrets репозитория: `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY` (те же, что у фронта). Пароль к GHCR не нужен, используется `GITHUB_TOKEN` (в Settings → Actions → General у workflow должны быть права на запись packages).
+
+Один раз на сервере (нужен docker с compose-плагином, пользователь из `VPS_USER` в группе `docker`):
+
+```bash
+mkdir -p /srv/ptodoc/api && cd /srv/ptodoc/api
+cat > .env <<'ENVEOF'
+POSTGRES_USER=pto
+POSTGRES_PASSWORD=<сильный пароль>
+POSTGRES_DB=ai_pto
+AUTH_PROVIDER=local
+COOKIE_SECURE=true
+CORS_ORIGIN=https://ptodoc.space
+SESSION_TTL_SECONDS=86400
+# API_PORT=3000   # порт на 127.0.0.1, куда смотрит reverse proxy api.ptodoc.space
+ENVEOF
+chmod 600 .env
+```
+
+`docker-compose.yml` на сервер копирует CI (из `deploy/docker-compose.prod.yml`). Для `AUTH_PROVIDER=zitadel` добавь в `.env` переменные `ZITADEL_*`, а файл ключа смонтируй в контейнер. Первого пользователя заводим после первого деплоя:
+
+```bash
+cd /srv/ptodoc/api
+docker compose exec api yarn user:create --email you@example.com --password '...' --name 'Имя' --org-slug acme --role owner
+```
 
 ## Переменные окружения
 
-| Переменная | Где нужна | Пример / значение |
-| --- | --- | --- |
-| `DATABASE_URL` | Хост (`.env`) | `postgresql://pto:pto@localhost:5433/ai_pto` |
-| `DATABASE_URL` | Контейнер `api` (compose) | `postgresql://pto:pto@postgres:5432/ai_pto` |
-| `PORT` | API | `3000` |
-| `AUTH_PROVIDER` | API | `zitadel` (по умолчанию) или `local` |
-| `ZITADEL_ISSUER` | API (только `zitadel`) | `http://localhost:8080` |
-| `ZITADEL_CLIENT_ID` | API | Client ID приложения из Console |
-| `ZITADEL_KEY_PATH` | API | путь к JSON-ключу, напр. `./secrets/zitadel-app-key.json` |
-| `ZITADEL_REDIRECT_URI` | API | `http://localhost:3000/api/auth/callback` |
+| Переменная             | Где нужна                 | Пример / значение                                         |
+| ---------------------- | ------------------------- | --------------------------------------------------------- |
+| `DATABASE_URL`         | Хост (`.env`)             | `postgresql://pto:pto@localhost:5433/ai_pto`              |
+| `DATABASE_URL`         | Контейнер `api` (compose) | `postgresql://pto:pto@postgres:5432/ai_pto`               |
+| `PORT`                 | API                       | `3000`                                                    |
+| `AUTH_PROVIDER`        | API                       | `zitadel` (по умолчанию) или `local`                      |
+| `ZITADEL_ISSUER`       | API (только `zitadel`)    | `http://localhost:8080`                                   |
+| `ZITADEL_CLIENT_ID`    | API                       | Client ID приложения из Console                           |
+| `ZITADEL_KEY_PATH`     | API                       | путь к JSON-ключу, напр. `./secrets/zitadel-app-key.json` |
+| `ZITADEL_REDIRECT_URI` | API                       | `http://localhost:3000/api/auth/callback`                 |
 
 Почему порт Postgres **5433** на хосте: часто уже занят локальный Postgres на `5432`. Внутри сети compose сервис `postgres` слушает `5432`, с хоста ходить нужно на `localhost:5433`.
 
@@ -136,4 +195,3 @@ yarn prisma contract emit
 yarn prisma db migrate
 yarn prisma db verify
 ```
-
