@@ -26,7 +26,8 @@ export class DocumentQueueService implements OnModuleDestroy {
   }
 
   async enqueueStage(stage: Stage, documentId: string, packageId: string): Promise<void> {
-    const jobId = `${stage}:${documentId}`;
+    // BullMQ rejects custom ids that contain ':'.
+    const jobId = `${stage}_${documentId}`;
     const queue = this.queueFor(stage);
     const existing = await queue.getJob(jobId);
     if (existing) {
