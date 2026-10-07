@@ -31,6 +31,7 @@ info:
     Вход по email и паролю (`POST /auth/login`), сессия в HttpOnly cookie `ai_pto_session`.
     Организация и роль берутся из активного membership и перечитываются на каждом запросе.
     Роли: `owner` (владелец организации) и `engineer`. Архивировать объект может только `owner`.
+    Owner управляет инженерами организации через `/employees` (list доступен и engineer).
     Все выборки ограничены организацией текущего пользователя.
 
     ## Объекты
@@ -56,6 +57,8 @@ servers:
 tags:
   - name: Auth
     description: Вход и текущий пользователь
+  - name: Employees
+    description: Инженеры организации (CRUD для Owner; list ещё и для Engineer)
   - name: Objects
     description: Строительные объекты
   - name: Packages
@@ -142,6 +145,101 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/ProtectedResponse" }
         "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /employees:
+    get:
+      tags: [Employees]
+      operationId: listEmployees
+      summary: Список инженеров организации
+      description: |
+        Возвращает активных инженеров (`role=engineer`, `status=active`) организации
+        текущего membership. Доступно Owner и Engineer.
+      responses:
+        "200":
+          description: Список инженеров
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Employee" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    post:
+      tags: [Employees]
+      operationId: createEmployee
+      summary: Создать инженера
+      description: |
+        Создаёт пользователя со статусом `active` и membership `engineer`/`active`
+        в организации Owner. Только Owner.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EmployeeCreate" }
+      responses:
+        "201":
+          description: Инженер создан
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Employee" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /employees/{employeeId}:
+    parameters:
+      - name: employeeId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      tags: [Employees]
+      operationId: getEmployee
+      summary: Карточка инженера
+      description: Активный инженер текущей организации. Только Owner.
+      responses:
+        "200":
+          description: Инженер
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Employee" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      tags: [Employees]
+      operationId: updateEmployee
+      summary: Изменить инженера
+      description: Частичное обновление имени, email или пароля. Только Owner.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EmployeeUpdate" }
+      responses:
+        "200":
+          description: Обновлён
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Employee" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+    delete:
+      tags: [Employees]
+      operationId: deleteEmployee
+      summary: Удалить инженера (soft-delete)
+      description: |
+        Ставит `User.status=disabled` и `Membership.status=disabled`, отзывает сессии.
+        Запись остаётся в БД; в списках и GET больше не отдаётся. Только Owner.
+      responses:
+        "204":
+          description: Инженер отключён
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
 
   /object-types:
     get:
@@ -1085,6 +1183,38 @@ components:
       properties:
         ok: { type: boolean, examples: [true] }
         user: { $ref: "#/components/schemas/User" }
+
+    Employee:
+      type: object
+      required: [id, email, name, organizationId, role, status]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        name: { type: string }
+        organizationId: { type: string, format: uuid }
+        role:
+          type: string
+          enum: [engineer]
+        status:
+          type: string
+          enum: [active]
+          description: В API отдаются только активные инженеры; soft-delete убирает запись из выдачи
+
+    EmployeeCreate:
+      type: object
+      required: [email, name, password]
+      properties:
+        email: { type: string, format: email }
+        name: { type: string, minLength: 1 }
+        password: { type: string, minLength: 8 }
+
+    EmployeeUpdate:
+      type: object
+      description: Хотя бы одно поле обязательно
+      properties:
+        email: { type: string, format: email }
+        name: { type: string, minLength: 1 }
+        password: { type: string, minLength: 8 }
 
     # ---------- Объекты ----------
     ObjectStatus:
