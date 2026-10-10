@@ -30,7 +30,9 @@ info:
 
     Вход по email и паролю (`POST /auth/login`), сессия в HttpOnly cookie `ai_pto_session`.
     Организация и роль берутся из активного membership и перечитываются на каждом запросе.
-    Роли: `owner` (владелец организации) и `engineer`. Архивировать объект может только `owner`.
+    Роли: `owner` (владелец организации) и `engineer`.
+    `engineer` — только просмотр объектов (`GET /objects`, `GET /objects/{id}`).
+    `owner` — создание, изменение, смена статуса и архивация объектов.
     Все выборки ограничены организацией текущего пользователя.
 
     ## Объекты
@@ -216,7 +218,7 @@ paths:
       tags: [Objects]
       operationId: createObject
       summary: Создать объект
-      description: Объект создаётся в статусе `draft`. `code` уникален внутри организации.
+      description: Только роль `owner`. Объект создаётся в статусе `draft`. `code` уникален внутри организации.
       requestBody:
         required: true
         content:
@@ -229,6 +231,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/ConstructionObject" }
         "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/ValidationError" }
 
@@ -252,7 +255,7 @@ paths:
       tags: [Objects]
       operationId: updateObject
       summary: Изменить объект
-      description: Те же поля, что при создании. Архивный объект не редактируется (409).
+      description: Только роль `owner`. Те же поля, что при создании. Архивный объект не редактируется (409).
       requestBody:
         required: true
         content:
@@ -265,6 +268,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/ConstructionObject" }
         "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/ValidationError" }
@@ -277,6 +281,7 @@ paths:
       operationId: changeObjectStatus
       summary: Сменить статус объекта
       description: |
+        Только роль `owner`.
         Допустимые переходы: `draft → active`, `active → on_hold`, `on_hold → active`,
         `active → completed`, `on_hold → completed`. Из `archived` перехода нет.
         При переходе в `completed` пустая `actualEndDate` заполняется текущей датой.
@@ -292,6 +297,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/ConstructionObject" }
         "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
 
