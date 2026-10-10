@@ -1,4 +1,17 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Query } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { CurrentUser } from "../../common/decorators/current-user.decorator.js";
 import type {
   Document,
   DocumentDetail,
@@ -7,7 +20,9 @@ import type {
   DocumentUpdate,
   ListDocumentsQuery,
   PageMeta,
+  User,
 } from "../../common/dto/openapi.types.js";
+import { SessionGuard } from "../auth/session.guard.js";
 import { DocumentsService } from "./documents.service.js";
 
 @Controller()
@@ -15,6 +30,7 @@ export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
   @Get("objects/:objectId/documents")
+  @UseGuards(SessionGuard)
   listDocuments(
     @Param("objectId", ParseUUIDPipe) objectId: string,
     @Query() query: ListDocumentsQuery,
@@ -23,11 +39,13 @@ export class DocumentsController {
   }
 
   @Get("documents/:documentId")
+  @UseGuards(SessionGuard)
   getDocument(@Param("documentId", ParseUUIDPipe) documentId: string): Promise<DocumentDetail> {
     return this.documentsService.getDocument(documentId);
   }
 
   @Patch("documents/:documentId")
+  @UseGuards(SessionGuard)
   updateDocument(
     @Param("documentId", ParseUUIDPipe) documentId: string,
     @Body() body: DocumentUpdate,
@@ -37,16 +55,22 @@ export class DocumentsController {
 
   @Delete("documents/:documentId")
   @HttpCode(204)
-  deleteDocument(@Param("documentId", ParseUUIDPipe) documentId: string): Promise<void> {
-    return this.documentsService.deleteDocument(documentId);
+  @UseGuards(SessionGuard)
+  deleteDocument(@CurrentUser() user: User, @Param("documentId", ParseUUIDPipe) documentId: string): Promise<void> {
+    return this.documentsService.deleteDocument(user, documentId);
   }
 
   @Get("documents/:documentId/file")
-  getDocumentFile(@Param("documentId", ParseUUIDPipe) documentId: string): Promise<{ url: string; expiresAt: string }> {
-    return this.documentsService.getDocumentFile(documentId);
+  @UseGuards(SessionGuard)
+  getDocumentFile(
+    @CurrentUser() user: User,
+    @Param("documentId", ParseUUIDPipe) documentId: string,
+  ): Promise<{ url: string; expiresAt: string }> {
+    return this.documentsService.getDocumentFile(user, documentId);
   }
 
   @Patch("documents/:documentId/fields")
+  @UseGuards(SessionGuard)
   updateDocumentFields(
     @Param("documentId", ParseUUIDPipe) documentId: string,
     @Body() body: DocumentFieldsUpdate,
@@ -56,6 +80,7 @@ export class DocumentsController {
 
   @Post("documents/:documentId/recheck")
   @HttpCode(202)
+  @UseGuards(SessionGuard)
   recheckDocument(
     @Param("documentId", ParseUUIDPipe) documentId: string,
     @Body() body: DocumentRecheckRequest = {},
