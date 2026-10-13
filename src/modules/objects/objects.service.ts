@@ -99,6 +99,7 @@ export class ObjectsService {
   }
 
   async createObject(user: User, body: ObjectWrite): Promise<ConstructionObject> {
+    this.assertOwner(user);
     await this.assertObjectType(body.objectTypeId);
     await this.assertWorkTypes(body.workTypeIds);
     await this.assertCounterparties(body.customerOrganizationId, body.contractorOrganizationId);
@@ -149,6 +150,7 @@ export class ObjectsService {
   }
 
   async updateObject(user: User, objectId: string, body: ObjectWrite): Promise<ConstructionObject> {
+    this.assertOwner(user);
     const existing = await this.loadObjectOrThrow(user.organizationId, objectId);
     if (existing.status === "archived") {
       throw new ConflictException({
@@ -195,11 +197,8 @@ export class ObjectsService {
     return this.getObject(user, objectId);
   }
 
-  async changeStatus(
-    user: User,
-    objectId: string,
-    body: ObjectStatusChange,
-  ): Promise<ConstructionObject> {
+  async changeStatus(user: User, objectId: string, body: ObjectStatusChange): Promise<ConstructionObject> {
+    this.assertOwner(user);
     const existing = await this.loadObjectOrThrow(user.organizationId, objectId);
     const next = body.status;
 
@@ -234,12 +233,7 @@ export class ObjectsService {
   }
 
   async archiveObject(user: User, objectId: string): Promise<ConstructionObject> {
-    if (user.role !== "owner") {
-      throw new ForbiddenException({
-        code: "forbidden",
-        message: "Архивировать объект может только владелец организации",
-      });
-    }
+    this.assertOwner(user);
 
     const existing = await this.loadObjectOrThrow(user.organizationId, objectId);
     if (existing.status === "archived") {
@@ -336,6 +330,15 @@ export class ObjectsService {
     };
   }
 
+  private assertOwner(user: User): void {
+    if (user.role !== "owner") {
+      throw new ForbiddenException({
+        code: "forbidden",
+        message: "Недостаточно прав для выполнения операции",
+      });
+    }
+  }
+
   private async assertObjectType(objectTypeId: string): Promise<void> {
     const row = await this.db.orm.public.ObjectType.where({ id: objectTypeId, active: true }).first();
     if (!row) {
@@ -372,10 +375,7 @@ export class ObjectsService {
     await this.assertCounterparty(contractorOrganizationId, "contractorOrganizationId");
   }
 
-  private async assertCounterparty(
-    organizationId: string | null | undefined,
-    field: string,
-  ): Promise<void> {
+  private async assertCounterparty(organizationId: string | null | undefined, field: string): Promise<void> {
     if (!organizationId) {
       return;
     }
@@ -392,11 +392,7 @@ export class ObjectsService {
     }
   }
 
-  private async assertCodeAvailable(
-    organizationId: string,
-    code: string,
-    excludeObjectId?: string,
-  ): Promise<void> {
+  private async assertCodeAvailable(organizationId: string, code: string, excludeObjectId?: string): Promise<void> {
     const existing = await this.db.orm.public.ConstructionObject.where({
       organizationId,
       code,
