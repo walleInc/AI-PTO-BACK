@@ -7,5 +7,8 @@ yarn prisma db migrate
 echo "Applying catalog seed migration..."
 node scripts/apply-seed-catalogs.mjs
 
+echo "Applying documentType seed migration..."
+node scripts/apply-seed-document-types.mjs
+
 echo "Starting API on 0.0.0.0:${PORT:-3000}..."
 exec node dist/main.js
