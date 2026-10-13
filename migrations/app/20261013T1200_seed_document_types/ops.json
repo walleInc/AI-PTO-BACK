@@ -1,0 +1,38 @@
+[
+  {
+    "id": "data_migration.seed_document_types",
+    "label": "Seed document types",
+    "summary": "Idempotent DocumentType seed for package upload (requires code=unknown)",
+    "operationClass": "data",
+    "invariantId": "seed:document-types-v1",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "documentType"
+      }
+    },
+    "precheck": [
+      {
+        "description": "always allow seed (idempotent via ON CONFLICT)",
+        "sql": "SELECT true AS \"result\"",
+        "params": []
+      }
+    ],
+    "execute": [
+      {
+        "description": "insert documentType rows",
+        "sql": "INSERT INTO \"public\".\"documentType\" (id, code, name, description, active)\nVALUES\n  (gen_random_uuid(), 'aosr', 'АОСР', 'Акт освидетельствования скрытых работ', true),\n  (gen_random_uuid(), 'general_work_log', 'Общий журнал работ', 'Выписка из общего журнала работ', true),\n  (gen_random_uuid(), 'concrete_log', 'Журнал бетонных работ', 'Выписка из журнала бетонных работ', true),\n  (gen_random_uuid(), 'welding_log', 'Журнал сварочных работ', 'Выписка из журнала сварочных работ', true),\n  (gen_random_uuid(), 'material_passport', 'Паспорт материала', 'Паспорт материала, выписка', true),\n  (gen_random_uuid(), 'as_built_scheme', 'Исполнительная схема', 'Исполнительная схема', true),\n  (gen_random_uuid(), 'test_report', 'Протокол испытаний', 'Протокол испытаний, выписка', true),\n  (gen_random_uuid(), 'other', 'Прочее', 'Прочий документ', true),\n  (gen_random_uuid(), 'unknown', 'Не распознано', 'Документ, не отнесённый к типу', false)\nON CONFLICT (code) DO NOTHING;",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "documentType table still exists",
+        "sql": "SELECT (to_regclass('\"public\".\"documentType\"') IS NOT NULL) AS \"result\"",
+        "params": []
+      }
+    ]
+  }
+]
