@@ -23,6 +23,7 @@ import type {
   User,
 } from "../../common/dto/openapi.types.js";
 import { DB, type AppDb } from "../../prisma/db.token.js";
+import { DocumentQueueService } from "../../queue/document-queue.service.js";
 import { StorageService } from "../storage/storage.service.js";
 import { sanitizeFileName, toDocumentDto, toPackageDto } from "./package.mapper.js";
 
@@ -45,13 +46,14 @@ const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 const MIN_FILES = 1;
 const MAX_FILES = 200;
 
-const TERMINAL_OR_QUEUED: ReadonlySet<PackageStatus> = new Set(["queued", "processing", "done", "partial", "failed"]);
+const TERMINAL: ReadonlySet<PackageStatus> = new Set(["done", "partial", "failed"]);
 
 @Injectable()
 export class PackagesService {
   constructor(
     @Inject(DB) private readonly db: AppDb,
     private readonly storage: StorageService,
+    private readonly documentQueue: DocumentQueueService,
   ) {}
 
   async listPackages(user: User, objectId: string): Promise<Package[]> {
@@ -250,7 +252,12 @@ export class PackagesService {
   async startPackage(user: User, packageId: string): Promise<Package> {
     const pkg = await this.loadPackageWithDocsOrThrow(user.organizationId, packageId);
 
-    if (TERMINAL_OR_QUEUED.has(pkg.status)) {
+    if (TERMINAL.has(pkg.status)) {
+      return toPackageDto(pkg);
+    }
+
+    if (pkg.status === "queued" || pkg.status === "processing") {
+      await this.enqueueQueuedDocuments(packageId, pkg.documents);
       return toPackageDto(pkg);
     }
 
@@ -296,7 +303,19 @@ export class PackagesService {
     });
 
     const updated = await this.loadPackageWithDocsOrThrow(user.organizationId, packageId);
+    await this.enqueueQueuedDocuments(packageId, updated.documents);
     return toPackageDto(updated);
+  }
+
+  private async enqueueQueuedDocuments(
+    packageId: string,
+    documents: Array<{ id: string; status: string }>,
+  ): Promise<void> {
+    for (const doc of documents) {
+      if (doc.status === "queued") {
+        await this.documentQueue.enqueueDocumentPipeline(doc.id, packageId);
+      }
+    }
   }
 
   streamPackageEvents(_packageId: string): Observable<MessageEvent> {
