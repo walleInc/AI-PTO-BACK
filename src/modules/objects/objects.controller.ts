@@ -1,15 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  Param,
-  ParseUUIDPipe,
-  Patch,
-  Post,
-  Query,
-  UseGuards,
-} from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { CurrentUser } from "../../common/decorators/current-user.decorator.js";
 import type {
   ConstructionObject,
@@ -64,15 +53,14 @@ export class ObjectsController {
   constructor(private readonly objectsService: ObjectsService) {}
 
   @Get()
-  listObjects(
-    @CurrentUser() user: User,
-    @Query() query: ListObjectsQuery,
-  ): Promise<ConstructionObject[]> {
+  listObjects(@CurrentUser() user: User, @Query() query: ListObjectsQuery): Promise<ConstructionObject[]> {
     return this.objectsService.listObjects(user, query);
   }
 
   @Post()
   @HttpCode(201)
+  @UseGuards(RolesGuard)
+  @Roles("owner")
   createObject(@CurrentUser() user: User, @Body() body: ObjectWrite): Promise<ConstructionObject> {
     return this.objectsService.createObject(user, body);
   }
@@ -86,6 +74,8 @@ export class ObjectsController {
   }
 
   @Patch(":objectId")
+  @UseGuards(RolesGuard)
+  @Roles("owner")
   updateObject(
     @CurrentUser() user: User,
     @Param("objectId", ParseUUIDPipe) objectId: string,
@@ -95,6 +85,8 @@ export class ObjectsController {
   }
 
   @Post(":objectId/status")
+  @UseGuards(RolesGuard)
+  @Roles("owner")
   changeStatus(
     @CurrentUser() user: User,
     @Param("objectId", ParseUUIDPipe) objectId: string,
