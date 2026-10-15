@@ -71,10 +71,108 @@ tags:
     description: Комплектность и сводка по объекту
   - name: Reports
     description: PDF-отчёты для подрядчика
+  - name: Public
+    description: Публичные эндпоинты без сессии (лиды с лендинга)
 security:
   - cookieAuth: []
 
 paths:
+  /public/demo/lead:
+    post:
+      tags: [Public]
+      operationId: submitDemoLead
+      summary: Заявка с демо-страницы
+      security: []
+      description: |
+        Публичная заявка с `/demo`. Письмо на `LEADS_TO` через SMTP, без записи в БД.
+        Rate-limit ~5 запросов в минуту с одного IP.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+                company: { type: string }
+                phone: { type: string }
+                comment: { type: string }
+      responses:
+        "201":
+          description: Письмо отправлено
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok]
+                properties:
+                  ok: { type: boolean, enum: [true] }
+        "422":
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { code: validation_error, message: Некорректные данные заявки }
+        "429":
+          description: Слишком много запросов
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "503":
+          description: SMTP недоступен
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { code: mail_unavailable, message: Не удалось отправить заявку }
+
+  /public/contact:
+    post:
+      tags: [Public]
+      operationId: submitContactLead
+      summary: Контактная форма лендинга
+      security: []
+      description: |
+        Публичная заявка с футера лендинга. Письмо на `LEADS_TO` через SMTP, без записи в БД.
+        Rate-limit ~5 запросов в минуту с одного IP.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, message]
+              properties:
+                name: { type: string, minLength: 2 }
+                email: { type: string, format: email }
+                message: { type: string, minLength: 10 }
+      responses:
+        "201":
+          description: Письмо отправлено
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok]
+                properties:
+                  ok: { type: boolean, enum: [true] }
+        "422":
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "429":
+          description: Слишком много запросов
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "503":
+          description: SMTP недоступен
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { code: mail_unavailable, message: Не удалось отправить заявку }
+
   /auth/login:
     post:
       tags: [Auth]
