@@ -1,9 +1,0 @@
-{
-  "from": "7fc73f779409e021970741232f3d0444f72d5499c43c28efba9d996968842952",
-  "to": "7fc73f779409e021970741232f3d0444f72d5499c43c28efba9d996968842952",
-  "providedInvariants": [
-    "seed:document-types-v1"
-  ],
-  "createdAt": "2026-10-13T12:00:00.000Z",
-  "migrationHash": "62fe019482c2eeb6566e582965faa9c651041e8ef8e7fcd669999a287a4b9578"
-}
