@@ -30,6 +30,15 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      default:
+      ptodoc:
+        aliases:
+          - ptodoc-api
 
 volumes:
   postgres_data:
+
+networks:
+  ptodoc:
+    external: true
